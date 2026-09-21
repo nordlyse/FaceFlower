@@ -1,5 +1,5 @@
 const FACE_MODEL_PATH = "models/facefinder";
-const DETECT_MAX_EDGE = 640;
+const DETECT_MAX_EDGE = 480;
 const MIN_SCORE = 50;
 
 let classifyRegion = null;

@@ -48,6 +48,8 @@ function clearResult() {
   refreshButtons();
 }
 
+const MAX_SOURCE_EDGE = 1280;
+
 function insertUploadedPhoto(file) {
   if (!file || !file.type.startsWith("image/")) {
     setConvertStatus("Please choose an image file.");
@@ -57,10 +59,14 @@ function insertUploadedPhoto(file) {
   const url = URL.createObjectURL(file);
   const image = new Image();
   image.onload = () => {
-    sourceCanvas.width = image.naturalWidth;
-    sourceCanvas.height = image.naturalHeight;
+    const scale = Math.min(
+      1,
+      MAX_SOURCE_EDGE / Math.max(image.naturalWidth, image.naturalHeight)
+    );
+    sourceCanvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    sourceCanvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
     const ctx = sourceCanvas.getContext("2d");
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(image, 0, 0, sourceCanvas.width, sourceCanvas.height);
     URL.revokeObjectURL(url);
     sourceReady = true;
     showCanvas(sourceCanvas, sourcePlaceholder);
