@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FaceFlower</title>
+    <meta
+      name="description"
+      content="Detect faces in a photo and cover them with flower icons for GDPR-friendly sharing."
+    />
+    <link rel="stylesheet" href="css/app.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23141a14'/%3E%3Ccircle cx='16' cy='8' r='4' fill='%23fff4d6'/%3E%3Ccircle cx='24' cy='16' r='4' fill='%23fff4d6'/%3E%3Ccircle cx='16' cy='24' r='4' fill='%23fff4d6'/%3E%3Ccircle cx='8' cy='16' r='4' fill='%23fff4d6'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23f4c430'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true">
+      <span class="orb orb-a"></span>
+      <span class="orb orb-b"></span>
+      <span class="orb orb-c"></span>
+      <span class="grain"></span>
+    </div>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <div>
+          <h1>FaceFlower</h1>
+          <p>Cover faces with flowers before you share.</p>
+        </div>
+      </div>
+      <p id="engine-status" class="chip" data-state="loading">Loading face engine…</p>
+    </header>
+
+    <main>
+      <section class="board">
+        <article class="card" id="source-card">
+          <div class="card-head">
+            <h2>Original</h2>
+            <button type="button" id="upload-button" class="btn btn-ghost">Upload</button>
+          </div>
+          <div class="frame" id="source-frame">
+            <canvas id="source-canvas" hidden></canvas>
+            <div id="source-placeholder" class="placeholder">
+              <strong>Drop a photo here</strong>
+              <span>or use Upload. JPEG, PNG, and WebP work best.</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="result-card">
+          <div class="card-head">
+            <h2>Flower cover</h2>
+            <button type="button" id="download-button" class="btn btn-ghost" disabled>
+              Download
+            </button>
+          </div>
+          <div class="frame" id="result-frame">
+            <canvas id="result-canvas" hidden></canvas>
+            <div id="result-placeholder" class="placeholder">
+              <strong>Converted photo appears here</strong>
+              <span>Press Convert after you add a photo.</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <div class="actions">
+        <button type="button" id="convert-button" class="btn btn-convert" disabled>
+          Convert
+        </button>
+        <p id="convert-status" class="status" role="status"></p>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        Faces are covered in your browser with pico.js (MIT). Nothing is sent to a server.
+      </p>
+    </footer>
+
+    <input id="file-input" type="file" accept="image/*" hidden />
+
+    <!-- pico.js MIT: https://github.com/nenadmarkus/picojs -->
+    <script src="vendor/pico.js"></script>
+    <script src="js/flowers.js"></script>
+    <script src="js/face-convert.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
