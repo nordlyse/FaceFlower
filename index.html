@@ -30,7 +30,7 @@
           <p>Cover faces with flowers before you share.</p>
         </div>
       </div>
-      <p id="engine-status" class="chip" data-state="loading">Loading face engine…</p>
+      <p id="engine-status" class="chip" data-state="ready">Ready</p>
     </header>
 
     <main>
@@ -76,14 +76,13 @@
 
     <footer>
       <p>
-        Faces are covered in your browser with pico.js (MIT). Nothing is sent to a server.
+        Faces are covered in your browser. Detection uses the built-in FaceDetector API, with a
+        local pico.js (MIT) worker as fallback. Nothing is sent to a server.
       </p>
     </footer>
 
     <input id="file-input" type="file" accept="image/*" hidden />
 
-    <!-- pico.js MIT: https://github.com/nenadmarkus/picojs -->
-    <script src="vendor/pico.js"></script>
     <script src="js/flowers.js"></script>
     <script src="js/face-convert.js"></script>
     <script src="js/app.js"></script>

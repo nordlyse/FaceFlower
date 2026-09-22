@@ -12,7 +12,9 @@ const convertStatus = document.getElementById("convert-status");
 
 let sourceReady = false;
 let resultReady = false;
-let engineReady = false;
+let converting = false;
+
+const MAX_SOURCE_EDGE = 960;
 
 function setEngineStatus(state, text) {
   engineStatus.dataset.state = state;
@@ -24,7 +26,7 @@ function setConvertStatus(text) {
 }
 
 function refreshButtons() {
-  convertButton.disabled = !(engineReady && sourceReady);
+  convertButton.disabled = !sourceReady || converting;
   downloadButton.disabled = !resultReady;
 }
 
@@ -39,16 +41,16 @@ function bindSpotlight(card) {
 function showCanvas(canvas, placeholder) {
   canvas.hidden = false;
   placeholder.hidden = true;
+  placeholder.classList.add("is-off");
 }
 
 function clearResult() {
   resultReady = false;
   resultCanvas.hidden = true;
   resultPlaceholder.hidden = false;
+  resultPlaceholder.classList.remove("is-off");
   refreshButtons();
 }
-
-const MAX_SOURCE_EDGE = 1280;
 
 function insertUploadedPhoto(file) {
   if (!file || !file.type.startsWith("image/")) {
@@ -87,32 +89,35 @@ function onFileChosen(event) {
   fileInput.value = "";
 }
 
-function onConvertClick() {
-  if (!engineReady || !sourceReady) {
+async function onConvertClick() {
+  if (!sourceReady || converting) {
     return;
   }
 
-  convertButton.disabled = true;
+  converting = true;
+  resultReady = false;
+  refreshButtons();
   setConvertStatus("Finding faces…");
 
-  window.setTimeout(() => {
-    try {
-      const count = convertSourceToFlowers(sourceCanvas, resultCanvas);
-      showCanvas(resultCanvas, resultPlaceholder);
-      resultReady = true;
-      if (count === 0) {
-        setConvertStatus("No faces found. Try a clearer frontal photo.");
-      } else {
-        setConvertStatus(
-          count === 1 ? "Covered 1 face with a flower." : `Covered ${count} faces with flowers.`
-        );
-      }
-    } catch (error) {
-      resultReady = false;
-      setConvertStatus(error.message || "Convert failed.");
+  try {
+    const count = await convertSourceToFlowers(sourceCanvas, resultCanvas, setEngineStatus);
+    showCanvas(resultCanvas, resultPlaceholder);
+    resultReady = true;
+    if (count === 0) {
+      setConvertStatus("No faces found. Try a clearer frontal photo.");
+    } else {
+      setConvertStatus(
+        count === 1 ? "Covered 1 face with a flower." : `Covered ${count} faces with flowers.`
+      );
     }
-    refreshButtons();
-  }, 30);
+  } catch (error) {
+    resultReady = false;
+    setEngineStatus("error", "Detector failed");
+    setConvertStatus(error.message || "Convert failed.");
+  }
+
+  converting = false;
+  refreshButtons();
 }
 
 function onDownloadClick() {
@@ -155,20 +160,8 @@ function startApp() {
   fileInput.addEventListener("change", onFileChosen);
   convertButton.addEventListener("click", onConvertClick);
   downloadButton.addEventListener("click", onDownloadClick);
+  setEngineStatus("ready", "Ready");
   refreshButtons();
-
-  startFaceEngine()
-    .then(() => {
-      engineReady = true;
-      setEngineStatus("ready", "Face engine ready");
-      refreshButtons();
-    })
-    .catch((error) => {
-      engineReady = false;
-      setEngineStatus("error", "Face engine failed");
-      setConvertStatus(error.message || "Face engine failed to start.");
-      refreshButtons();
-    });
 }
 
 startApp();

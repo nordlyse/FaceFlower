@@ -250,6 +250,12 @@ canvas {
   padding: 28px;
 }
 
+canvas[hidden],
+.placeholder[hidden],
+.placeholder.is-off {
+  display: none !important;
+}
+
 .placeholder strong {
   font-size: 1.05rem;
 }
