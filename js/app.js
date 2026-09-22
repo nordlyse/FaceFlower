@@ -101,11 +101,15 @@ async function onConvertClick() {
 
   try {
     const count = await convertSourceToFlowers(sourceCanvas, resultCanvas, setEngineStatus);
-    showCanvas(resultCanvas, resultPlaceholder);
-    resultReady = true;
     if (count === 0) {
+      resultReady = false;
+      resultCanvas.hidden = true;
+      resultPlaceholder.hidden = false;
+      resultPlaceholder.classList.remove("is-off");
       setConvertStatus("No faces found. Try a clearer frontal photo.");
     } else {
+      showCanvas(resultCanvas, resultPlaceholder);
+      resultReady = true;
       setConvertStatus(
         count === 1 ? "Covered 1 face with a flower." : `Covered ${count} faces with flowers.`
       );

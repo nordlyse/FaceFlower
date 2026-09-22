@@ -5,12 +5,40 @@ let picoWorker = null;
 let picoReady = null;
 
 function mapNativeBoxes(faces) {
-  return faces.map((face) => ({
-    x: face.boundingBox.x,
-    y: face.boundingBox.y,
-    width: face.boundingBox.width,
-    height: face.boundingBox.height,
-  }));
+  return faces.map((face) => {
+    const box = face.boundingBox;
+    return {
+      x: box.x ?? box.left ?? 0,
+      y: box.y ?? box.top ?? 0,
+      width: box.width,
+      height: box.height,
+    };
+  }).filter((box) => box.width > 8 && box.height > 8);
+}
+
+function overlapScore(a, b) {
+  const x = Math.max(a.x, b.x);
+  const y = Math.max(a.y, b.y);
+  const w = Math.min(a.x + a.width, b.x + b.width) - x;
+  const h = Math.min(a.y + a.height, b.y + b.height) - y;
+  if (w <= 0 || h <= 0) {
+    return 0;
+  }
+  const inter = w * h;
+  const union = a.width * a.height + b.width * b.height - inter;
+  return inter / union;
+}
+
+function mergeBoxes(boxes) {
+  const sorted = boxes.slice().sort((a, b) => b.width * b.height - a.width * a.height);
+  const kept = [];
+  sorted.forEach((box) => {
+    const duplicate = kept.some((other) => overlapScore(box, other) > 0.3);
+    if (!duplicate) {
+      kept.push(box);
+    }
+  });
+  return kept;
 }
 
 function addNativeDetector() {
@@ -61,11 +89,12 @@ function detectWithPico(sourceCanvas) {
   return new Promise((resolve, reject) => {
     const ctx = sourceCanvas.getContext("2d", { willReadFrequently: true });
     const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+    const rgbaCopy = imageData.data.slice().buffer;
     const onMessage = (event) => {
       const message = event.data;
       if (message.type === "boxes") {
         picoWorker.removeEventListener("message", onMessage);
-        resolve(message.boxes);
+        resolve(message.boxes || []);
       } else if (message.type === "error") {
         picoWorker.removeEventListener("message", onMessage);
         reject(new Error(message.message));
@@ -77,22 +106,22 @@ function detectWithPico(sourceCanvas) {
         type: "detect",
         width: sourceCanvas.width,
         height: sourceCanvas.height,
-        rgba: imageData.data.buffer,
+        rgba: rgbaCopy,
       },
-      [imageData.data.buffer]
+      [rgbaCopy]
     );
   });
 }
 
 async function findFaceBoxes(sourceCanvas, onStatus) {
+  const boxes = [];
+
   if (!nativeDetector) {
     nativeDetector = addNativeDetector();
   }
-
   if (nativeDetector) {
     try {
-      if (onStatus) onStatus("ready", "Built-in detector");
-      return mapNativeBoxes(await nativeDetector.detect(sourceCanvas));
+      boxes.push(...mapNativeBoxes(await nativeDetector.detect(sourceCanvas)));
     } catch (error) {
       nativeDetector = null;
     }
@@ -101,7 +130,8 @@ async function findFaceBoxes(sourceCanvas, onStatus) {
   if (onStatus) onStatus("loading", "Starting local detector…");
   await addPicoWorker();
   if (onStatus) onStatus("ready", "Local detector ready");
-  return detectWithPico(sourceCanvas);
+  boxes.push(...(await detectWithPico(sourceCanvas)));
+  return mergeBoxes(boxes);
 }
 
 async function convertSourceToFlowers(sourceCanvas, resultCanvas, onStatus) {

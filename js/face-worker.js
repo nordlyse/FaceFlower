@@ -1,7 +1,7 @@
 importScripts("../vendor/pico.js");
 
-const DETECT_MAX_EDGE = 480;
-const MIN_SCORE = 50;
+const DETECT_MAX_EDGE = 640;
+const MIN_SCORE = 12;
 let classifyRegion = null;
 
 function rgbaToGray(rgba, nrows, ncols) {
@@ -15,24 +15,47 @@ function rgbaToGray(rgba, nrows, ncols) {
   return gray;
 }
 
-function findBoxes(width, height, rgba) {
-  const scale = Math.min(1, DETECT_MAX_EDGE / Math.max(width, height));
-  const workWidth = Math.max(1, Math.round(width * scale));
-  const workHeight = Math.max(1, Math.round(height * scale));
-
-  let pixels = rgbaToGray(rgba, height, width);
-  if (scale !== 1) {
-    const scaled = new Uint8Array(workWidth * workHeight);
-    for (let y = 0; y < workHeight; y += 1) {
-      const srcY = Math.min(height - 1, Math.round(y / scale));
-      for (let x = 0; x < workWidth; x += 1) {
-        const srcX = Math.min(width - 1, Math.round(x / scale));
-        scaled[y * workWidth + x] = pixels[srcY * width + srcX];
-      }
-    }
-    pixels = scaled;
+function equalizeGray(gray) {
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < gray.length; i += 1) {
+    hist[gray[i]] += 1;
   }
+  const cdf = new Uint32Array(256);
+  cdf[0] = hist[0];
+  for (let i = 1; i < 256; i += 1) {
+    cdf[i] = cdf[i - 1] + hist[i];
+  }
+  let minCdf = 0;
+  for (let i = 0; i < 256; i += 1) {
+    if (cdf[i] > 0) {
+      minCdf = cdf[i];
+      break;
+    }
+  }
+  const span = gray.length - minCdf || 1;
+  const out = new Uint8Array(gray.length);
+  for (let i = 0; i < gray.length; i += 1) {
+    out[i] = Math.round(((cdf[gray[i]] - minCdf) / span) * 255);
+  }
+  return out;
+}
 
+function scaleGray(pixels, width, height, workWidth, workHeight) {
+  if (width === workWidth && height === workHeight) {
+    return pixels;
+  }
+  const scaled = new Uint8Array(workWidth * workHeight);
+  for (let y = 0; y < workHeight; y += 1) {
+    const srcY = Math.min(height - 1, Math.round((y * (height - 1)) / Math.max(1, workHeight - 1)));
+    for (let x = 0; x < workWidth; x += 1) {
+      const srcX = Math.min(width - 1, Math.round((x * (width - 1)) / Math.max(1, workWidth - 1)));
+      scaled[y * workWidth + x] = pixels[srcY * width + srcX];
+    }
+  }
+  return scaled;
+}
+
+function runOnGray(pixels, workWidth, workHeight, scale) {
   const image = {
     pixels: pixels,
     nrows: workHeight,
@@ -41,7 +64,7 @@ function findBoxes(width, height, rgba) {
   };
   const params = {
     shiftfactor: 0.1,
-    minsize: Math.max(24, Math.round(Math.min(workWidth, workHeight) * 0.08)),
+    minsize: Math.max(16, Math.round(Math.min(workWidth, workHeight) * 0.04)),
     maxsize: Math.min(workWidth, workHeight),
     scalefactor: 1.1,
   };
@@ -63,7 +86,18 @@ function findBoxes(width, height, rgba) {
   return boxes;
 }
 
-self.onmessage = async (event) => {
+function findBoxes(width, height, rgba) {
+  const scale = Math.min(1, DETECT_MAX_EDGE / Math.max(width, height));
+  const workWidth = Math.max(1, Math.round(width * scale));
+  const workHeight = Math.max(1, Math.round(height * scale));
+  const gray = scaleGray(rgbaToGray(rgba, height, width), width, height, workWidth, workHeight);
+  const equalized = equalizeGray(gray);
+  return runOnGray(gray, workWidth, workHeight, scale).concat(
+    runOnGray(equalized, workWidth, workHeight, scale)
+  );
+}
+
+self.onmessage = (event) => {
   const message = event.data;
   try {
     if (message.type === "start") {
