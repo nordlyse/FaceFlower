@@ -1,100 +1,108 @@
-const FACE_MODEL_PATH = "/models/facefinder";
-const WORKER_PATH = "/js/face-worker.js";
-const DETECT_TIMEOUT_MS = 8000;
+const FACE_MODEL_PATH = "models/facefinder";
+const DETECT_MAX_EDGE = 480;
+const MIN_SCORE = 1;
 
-let picoWorker = null;
-let picoReady = null;
+let classifyRegion = null;
 
-function withTimeout(promise, ms, message) {
-  return new Promise((resolve, reject) => {
-    const timer = window.setTimeout(() => reject(new Error(message)), ms);
-    promise.then(
-      (value) => {
-        window.clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        window.clearTimeout(timer);
-        reject(error);
-      }
-    );
-  });
+function copyRgbaBytes(imageData) {
+  const src = imageData.data;
+  const rgba = new Uint8Array(src.length);
+  rgba.set(src);
+  return rgba;
 }
 
-function addPicoWorker() {
-  if (picoReady) {
-    return picoReady;
+function rgbaToGray(rgba, nrows, ncols) {
+  const gray = new Uint8Array(nrows * ncols);
+  for (let r = 0; r < nrows; r += 1) {
+    for (let c = 0; c < ncols; c += 1) {
+      const i = (r * ncols + c) * 4;
+      gray[r * ncols + c] = (rgba[i] * 77 + rgba[i + 1] * 150 + rgba[i + 2] * 29) >> 8;
+    }
   }
-  picoWorker = new Worker(WORKER_PATH);
-  picoReady = new Promise((resolve, reject) => {
-    const onMessage = (event) => {
-      const message = event.data;
-      if (message.type === "ready") {
-        picoWorker.removeEventListener("message", onMessage);
-        resolve(true);
-      } else if (message.type === "error") {
-        picoWorker.removeEventListener("message", onMessage);
-        reject(new Error(message.message));
-      }
-    };
-    picoWorker.addEventListener("message", onMessage);
-    picoWorker.onerror = () => reject(new Error("Face worker failed"));
-    fetch(FACE_MODEL_PATH)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Face model could not be loaded");
-        }
-        return response.arrayBuffer();
-      })
-      .then((buffer) => {
-        picoWorker.postMessage({ type: "start", cascade: buffer }, [buffer]);
-      })
-      .catch(reject);
-  });
-  return picoReady;
+  return gray;
 }
 
-function detectWithPico(sourceCanvas) {
-  return new Promise((resolve, reject) => {
-    const ctx = sourceCanvas.getContext("2d", { willReadFrequently: true });
-    const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-    const rgbaCopy = imageData.data.slice().buffer;
-    const onMessage = (event) => {
-      const message = event.data;
-      if (message.type === "boxes") {
-        picoWorker.removeEventListener("message", onMessage);
-        resolve(message.boxes || []);
-      } else if (message.type === "error") {
-        picoWorker.removeEventListener("message", onMessage);
-        reject(new Error(message.message));
+async function startFaceEngine(onStatus) {
+  if (classifyRegion) {
+    return;
+  }
+  if (typeof pico === "undefined") {
+    throw new Error("pico.js failed to load");
+  }
+  if (onStatus) onStatus("loading", "Loading face model…");
+  const response = await fetch(FACE_MODEL_PATH);
+  if (!response.ok) {
+    throw new Error("Face model could not be loaded");
+  }
+  classifyRegion = pico.unpack_cascade(new Int8Array(await response.arrayBuffer()));
+}
+
+function findBoxesFromRgba(width, height, rgba) {
+  const scale = Math.min(1, DETECT_MAX_EDGE / Math.max(width, height));
+  const workWidth = Math.max(1, Math.round(width * scale));
+  const workHeight = Math.max(1, Math.round(height * scale));
+  const fullGray = rgbaToGray(rgba, height, width);
+  let pixels = fullGray;
+  if (scale !== 1) {
+    pixels = new Uint8Array(workWidth * workHeight);
+    for (let y = 0; y < workHeight; y += 1) {
+      const srcY = Math.min(height - 1, Math.floor(y / scale));
+      for (let x = 0; x < workWidth; x += 1) {
+        const srcX = Math.min(width - 1, Math.floor(x / scale));
+        pixels[y * workWidth + x] = fullGray[srcY * width + srcX];
       }
-    };
-    picoWorker.addEventListener("message", onMessage);
-    picoWorker.postMessage(
+    }
+  }
+
+  const dets = pico.cluster_detections(
+    pico.run_cascade(
+      { pixels: pixels, nrows: workHeight, ncols: workWidth, ldim: workWidth },
+      classifyRegion,
       {
-        type: "detect",
-        width: sourceCanvas.width,
-        height: sourceCanvas.height,
-        rgba: rgbaCopy,
-      },
-      [rgbaCopy]
-    );
-  });
+        shiftfactor: 0.1,
+        minsize: Math.max(20, Math.round(Math.min(workWidth, workHeight) * 0.05)),
+        maxsize: Math.min(workWidth, workHeight),
+        scalefactor: 1.1,
+      }
+    ),
+    0.2
+  );
+
+  const boxes = [];
+  for (let i = 0; i < dets.length; i += 1) {
+    if (dets[i][3] < MIN_SCORE) {
+      continue;
+    }
+    const size = dets[i][2];
+    boxes.push({
+      x: (dets[i][1] - size / 2) / scale,
+      y: (dets[i][0] - size / 2) / scale,
+      width: size / scale,
+      height: size / scale,
+    });
+  }
+  return boxes;
 }
 
-async function findFaceBoxes(sourceCanvas, onStatus) {
-  if (onStatus) onStatus("loading", "Finding faces…");
-  await withTimeout(addPicoWorker(), DETECT_TIMEOUT_MS, "Detector startup timed out");
-  if (onStatus) onStatus("ready", "Local detector ready");
-  return withTimeout(detectWithPico(sourceCanvas), DETECT_TIMEOUT_MS, "Face search timed out");
+function findFaceBoxes(sourceCanvas) {
+  const ctx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+  const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+  const rgba = copyRgbaBytes(imageData);
+  if (rgba.length !== sourceCanvas.width * sourceCanvas.height * 4) {
+    throw new Error("Photo pixels could not be read");
+  }
+  return findBoxesFromRgba(sourceCanvas.width, sourceCanvas.height, rgba);
 }
 
 async function convertSourceToFlowers(sourceCanvas, resultCanvas, onStatus) {
+  await startFaceEngine(onStatus);
+  if (onStatus) onStatus("ready", "Local detector ready");
+  await new Promise((resolve) => window.setTimeout(resolve, 20));
   resultCanvas.width = sourceCanvas.width;
   resultCanvas.height = sourceCanvas.height;
   const ctx = resultCanvas.getContext("2d");
   ctx.drawImage(sourceCanvas, 0, 0);
-  const boxes = await findFaceBoxes(sourceCanvas, onStatus);
+  const boxes = findFaceBoxes(sourceCanvas);
   boxes.forEach((box, index) => coverFaceWithFlower(ctx, box, index));
   return boxes.length;
 }
