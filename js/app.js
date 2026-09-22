@@ -14,7 +14,7 @@ let sourceReady = false;
 let resultReady = false;
 let converting = false;
 
-const MAX_SOURCE_EDGE = 960;
+const MAX_SOURCE_EDGE = 720;
 
 function setEngineStatus(state, text) {
   engineStatus.dataset.state = state;
@@ -58,29 +58,49 @@ function insertUploadedPhoto(file) {
     return;
   }
 
-  const url = URL.createObjectURL(file);
-  const image = new Image();
-  image.onload = () => {
-    const scale = Math.min(
-      1,
-      MAX_SOURCE_EDGE / Math.max(image.naturalWidth, image.naturalHeight)
+  loadOrientedPhoto(file)
+    .then((bitmap) => {
+      const scale = Math.min(
+        1,
+        MAX_SOURCE_EDGE / Math.max(bitmap.width, bitmap.height)
+      );
+      sourceCanvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      sourceCanvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const ctx = sourceCanvas.getContext("2d");
+      ctx.drawImage(bitmap, 0, 0, sourceCanvas.width, sourceCanvas.height);
+      if (typeof bitmap.close === "function") {
+        bitmap.close();
+      }
+      sourceReady = true;
+      showCanvas(sourceCanvas, sourcePlaceholder);
+      clearResult();
+      setConvertStatus("Photo ready. Press Convert to cover faces.");
+      refreshButtons();
+    })
+    .catch(() => {
+      setConvertStatus("That photo could not be read.");
+    });
+}
+
+function loadOrientedPhoto(file) {
+  if (typeof createImageBitmap === "function") {
+    return createImageBitmap(file, { imageOrientation: "from-image" }).catch(() =>
+      createImageBitmap(file)
     );
-    sourceCanvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-    sourceCanvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-    const ctx = sourceCanvas.getContext("2d");
-    ctx.drawImage(image, 0, 0, sourceCanvas.width, sourceCanvas.height);
-    URL.revokeObjectURL(url);
-    sourceReady = true;
-    showCanvas(sourceCanvas, sourcePlaceholder);
-    clearResult();
-    setConvertStatus("Photo ready. Press Convert to cover faces.");
-    refreshButtons();
-  };
-  image.onerror = () => {
-    URL.revokeObjectURL(url);
-    setConvertStatus("That photo could not be read.");
-  };
-  image.src = url;
+  }
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("read failed"));
+    };
+    image.src = url;
+  });
 }
 
 function onFileChosen(event) {
