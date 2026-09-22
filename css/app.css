@@ -269,6 +269,46 @@ canvas[hidden],
   margin-top: 28px;
 }
 
+.action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.size-label {
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+
+.size-value {
+  min-width: 3.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.btn-size {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
 .btn {
   appearance: none;
   border: 1px solid var(--line);

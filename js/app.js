@@ -1,6 +1,9 @@
 const uploadButton = document.getElementById("upload-button");
 const convertButton = document.getElementById("convert-button");
 const downloadButton = document.getElementById("download-button");
+const sizeDownButton = document.getElementById("size-down-button");
+const sizeUpButton = document.getElementById("size-up-button");
+const sizeValue = document.getElementById("size-value");
 const fileInput = document.getElementById("file-input");
 const sourceCanvas = document.getElementById("source-canvas");
 const resultCanvas = document.getElementById("result-canvas");
@@ -13,8 +16,13 @@ const convertStatus = document.getElementById("convert-status");
 let sourceReady = false;
 let resultReady = false;
 let converting = false;
+let lastFaceBoxes = [];
+let flowerScale = 1.08;
 
 const MAX_SOURCE_EDGE = 720;
+const FLOWER_SCALE_MIN = 0.5;
+const FLOWER_SCALE_MAX = 2.2;
+const FLOWER_SCALE_STEP = 0.08;
 
 function setEngineStatus(state, text) {
   engineStatus.dataset.state = state;
@@ -28,6 +36,22 @@ function setConvertStatus(text) {
 function refreshButtons() {
   convertButton.disabled = !sourceReady || converting;
   downloadButton.disabled = !resultReady;
+  sizeDownButton.disabled = flowerScale <= FLOWER_SCALE_MIN + 0.001;
+  sizeUpButton.disabled = flowerScale >= FLOWER_SCALE_MAX - 0.001;
+}
+
+function refreshSizeLabel() {
+  sizeValue.textContent = `${Math.round(flowerScale * 100)}%`;
+}
+
+function applyFlowerSize(nextScale) {
+  flowerScale = Math.min(FLOWER_SCALE_MAX, Math.max(FLOWER_SCALE_MIN, nextScale));
+  flowerScale = Math.round(flowerScale * 100) / 100;
+  refreshSizeLabel();
+  refreshButtons();
+  if (resultReady && lastFaceBoxes.length > 0) {
+    paintFlowersOnResult(sourceCanvas, resultCanvas, lastFaceBoxes, flowerScale);
+  }
 }
 
 function bindSpotlight(card) {
@@ -46,6 +70,7 @@ function showCanvas(canvas, placeholder) {
 
 function clearResult() {
   resultReady = false;
+  lastFaceBoxes = [];
   resultCanvas.hidden = true;
   resultPlaceholder.hidden = false;
   resultPlaceholder.classList.remove("is-off");
@@ -120,8 +145,14 @@ async function onConvertClick() {
   setConvertStatus("Finding faces…");
 
   try {
-    const count = await convertSourceToFlowers(sourceCanvas, resultCanvas, setEngineStatus);
-    if (count === 0) {
+    const boxes = await convertSourceToFlowers(
+      sourceCanvas,
+      resultCanvas,
+      setEngineStatus,
+      flowerScale
+    );
+    lastFaceBoxes = boxes;
+    if (boxes.length === 0) {
       resultReady = false;
       resultCanvas.hidden = true;
       resultPlaceholder.hidden = false;
@@ -131,7 +162,9 @@ async function onConvertClick() {
       showCanvas(resultCanvas, resultPlaceholder);
       resultReady = true;
       setConvertStatus(
-        count === 1 ? "Covered 1 face with a flower." : `Covered ${count} faces with flowers.`
+        boxes.length === 1
+          ? "Covered 1 face with a flower."
+          : `Covered ${boxes.length} faces with flowers.`
       );
     }
   } catch (error) {
@@ -184,7 +217,10 @@ function startApp() {
   fileInput.addEventListener("change", onFileChosen);
   convertButton.addEventListener("click", onConvertClick);
   downloadButton.addEventListener("click", onDownloadClick);
+  sizeDownButton.addEventListener("click", () => applyFlowerSize(flowerScale - FLOWER_SCALE_STEP));
+  sizeUpButton.addEventListener("click", () => applyFlowerSize(flowerScale + FLOWER_SCALE_STEP));
   setEngineStatus("ready", "Ready");
+  refreshSizeLabel();
   refreshButtons();
 }
 

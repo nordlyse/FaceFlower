@@ -94,15 +94,19 @@ function findFaceBoxes(sourceCanvas) {
   return findBoxesFromRgba(sourceCanvas.width, sourceCanvas.height, rgba);
 }
 
-async function convertSourceToFlowers(sourceCanvas, resultCanvas, onStatus) {
+async function convertSourceToFlowers(sourceCanvas, resultCanvas, onStatus, flowerScale) {
   await startFaceEngine(onStatus);
   if (onStatus) onStatus("ready", "Local detector ready");
   await new Promise((resolve) => window.setTimeout(resolve, 20));
+  const boxes = findFaceBoxes(sourceCanvas);
+  paintFlowersOnResult(sourceCanvas, resultCanvas, boxes, flowerScale);
+  return boxes;
+}
+
+function paintFlowersOnResult(sourceCanvas, resultCanvas, boxes, flowerScale) {
   resultCanvas.width = sourceCanvas.width;
   resultCanvas.height = sourceCanvas.height;
   const ctx = resultCanvas.getContext("2d");
   ctx.drawImage(sourceCanvas, 0, 0);
-  const boxes = findFaceBoxes(sourceCanvas);
-  boxes.forEach((box, index) => coverFaceWithFlower(ctx, box, index));
-  return boxes.length;
+  boxes.forEach((box, index) => coverFaceWithFlower(ctx, box, index, flowerScale));
 }

@@ -67,9 +67,21 @@
       </section>
 
       <div class="actions">
-        <button type="button" id="convert-button" class="btn btn-convert" disabled>
-          Convert
-        </button>
+        <div class="action-row">
+          <div class="size-control" role="group" aria-label="Flower size">
+            <span class="size-label">Flower size</span>
+            <button type="button" id="size-down-button" class="btn btn-ghost btn-size" aria-label="Smaller flowers">
+              −
+            </button>
+            <span id="size-value" class="size-value">108%</span>
+            <button type="button" id="size-up-button" class="btn btn-ghost btn-size" aria-label="Larger flowers">
+              +
+            </button>
+          </div>
+          <button type="button" id="convert-button" class="btn btn-convert" disabled>
+            Convert
+          </button>
+        </div>
         <p id="convert-status" class="status" role="status"></p>
       </div>
     </main>

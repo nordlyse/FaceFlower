@@ -1,9 +1,9 @@
 const FLOWER_KINDS = ["daisy", "rose", "tulip", "sunflower", "blossom"];
 
-function coverFaceWithFlower(ctx, box, index) {
+function coverFaceWithFlower(ctx, box, index, flowerScale) {
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
-  const size = Math.max(box.width, box.height) * 1.08;
+  const size = Math.max(box.width, box.height) * flowerScale;
   const kind = FLOWER_KINDS[index % FLOWER_KINDS.length];
 
   ctx.save();
