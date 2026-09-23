@@ -29,25 +29,28 @@ Then open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). Any other static fil
 
 ## Tools and libraries
 
-| Piece | Role | Licence |
-| --- | --- | --- |
-| HTML, CSS, and vanilla JavaScript | UI, convert flow, download | this repo |
-| [pico.js](https://github.com/nenadmarkus/picojs) (`vendor/pico.js`) | Local face finder | MIT |
-| `models/facefinder` | pico cascade model used by the face finder | shipped with pico |
-| Canvas 2D (`js/flowers.js`) | Daisy, rose, tulip, sunflower, and blossom covers | this repo |
-| `js/plates.js` | License-plate finder and NO NUMBER sticker | this repo |
-| WebGL (`js/prism-bg.js`) | Full-page prism background | this repo |
-| `python3 -m http.server` | Optional local static host | Python |
+The only third-party library shipped in this app is **pico.js** (MIT). Flowers, plate stickers, the convert flow, and the prism background are FaceFlower code in this repository.
 
-There is no npm install, no cloud vision API, and no extra runtime besides a browser.
+| Piece | Role | Licence | In the repo? |
+| --- | --- | --- | --- |
+| [pico.js](https://github.com/nenadmarkus/picojs) (`vendor/pico.js`) | Local face finder | MIT | yes, vendored |
+| `models/facefinder` | pico cascade used by the face finder | MIT (same pico.js project) | yes |
+| HTML, CSS, `js/app.js`, `js/face-convert.js` | UI, convert, download | MIT (this repo) | yes |
+| `js/flowers.js` | Flower covers (Canvas 2D) | MIT (this repo) | yes |
+| `js/plates.js` | Plate finder and NO NUMBER sticker | MIT (this repo) | yes |
+| `js/prism-bg.js` | Prism background (WebGL) | MIT (this repo) | yes |
+| Canvas 2D and WebGL | Drawing APIs in the browser | browser platform | no extra package |
+| `python3 -m http.server` | Optional local static host | [PSF Licence](https://docs.python.org/3/license.html) | not shipped |
+
+There is no npm install, no CDN script, no cloud vision API, and no OpenCV / MediaPipe / TensorFlow build.
 
 **Face finder.** pico.js runs a packed cascade on grayscale pixels on the main thread. A copy of the canvas RGBA buffer is passed in so the detector reads the photo correctly.
 
 **Plate finder.** `js/plates.js` looks for bright, wide rectangles with strong vertical edges (letter-like strokes), joins them, and skips boxes that overlap a face. It is a local heuristic, not a commercial ANPR product, so very small, blurred, or steeply angled plates can be missed. Wrong stickers can be removed with the context menu.
 
-**Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (MIT). The shader in this repo is original.
+**Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (**MIT**). That package is **not** included; the shader in this repo is original FaceFlower code.
 
-Third-party libraries are limited to MIT or Apache-2.0.
+Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pico.js is MIT. Nothing Apache-2.0 is bundled today.
 
 ## Privacy
 
@@ -71,4 +74,14 @@ models/facefinder   Face cascade
 
 ## Licence
 
-pico.js is MIT (see `vendor/LICENSE-pico.txt`). App code in this repository follows the same MIT terms unless a file says otherwise.
+Third-party code that ships with the app:
+
+- **pico.js** — MIT, Nenad Markus / [picojs](https://github.com/nenadmarkus/picojs). Full text: `vendor/LICENSE-pico.txt`.
+- **models/facefinder** — face cascade from the same pico.js project, MIT under the same terms.
+
+Not bundled, listed only because they show up in docs or local run:
+
+- **python3 -m http.server** — optional host, [Python Software Foundation Licence](https://docs.python.org/3/license.html).
+- **React Bits Prism** — MIT look reference only. FaceFlower does not include React Bits or OGL.
+
+FaceFlower app files (HTML, CSS, and `js/` except `vendor/pico.js`) use MIT, same as pico.js, unless a file says otherwise.
