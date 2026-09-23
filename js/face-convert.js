@@ -94,22 +94,30 @@ function findFaceBoxes(sourceCanvas) {
   return findBoxesFromRgba(sourceCanvas.width, sourceCanvas.height, rgba);
 }
 
-async function convertSourceToFlowers(sourceCanvas, resultCanvas, onStatus, flowerScale) {
+async function convertSourceToCovers(sourceCanvas, resultCanvas, onStatus, flowerScale) {
   await startFaceEngine(onStatus);
   if (onStatus) onStatus("ready", "Local detector ready");
   await new Promise((resolve) => window.setTimeout(resolve, 20));
-  const boxes = findFaceBoxes(sourceCanvas);
-  boxes.forEach((box, index) => {
+  const ctx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+  const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+  const rgba = copyRgbaBytes(imageData);
+  if (rgba.length !== sourceCanvas.width * sourceCanvas.height * 4) {
+    throw new Error("Photo pixels could not be read");
+  }
+  const faces = findBoxesFromRgba(sourceCanvas.width, sourceCanvas.height, rgba);
+  faces.forEach((box, index) => {
     box.kindIndex = index;
   });
-  paintFlowersOnResult(sourceCanvas, resultCanvas, boxes, flowerScale);
-  return boxes;
+  const plates = findPlateBoxes(sourceCanvas.width, sourceCanvas.height, rgba, faces);
+  paintCoversOnResult(sourceCanvas, resultCanvas, faces, plates, flowerScale);
+  return { faces: faces, plates: plates };
 }
 
-function paintFlowersOnResult(sourceCanvas, resultCanvas, boxes, flowerScale) {
+function paintCoversOnResult(sourceCanvas, resultCanvas, faces, plates, flowerScale) {
   resultCanvas.width = sourceCanvas.width;
   resultCanvas.height = sourceCanvas.height;
   const ctx = resultCanvas.getContext("2d");
   ctx.drawImage(sourceCanvas, 0, 0);
-  boxes.forEach((box, index) => coverFaceWithFlower(ctx, box, index, flowerScale));
+  faces.forEach((box, index) => coverFaceWithFlower(ctx, box, index, flowerScale));
+  plates.forEach((box) => coverPlateWithLabel(ctx, box, flowerScale));
 }

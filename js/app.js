@@ -17,9 +17,10 @@ let sourceReady = false;
 let resultReady = false;
 let converting = false;
 let lastFaceBoxes = [];
+let lastPlateBoxes = [];
 let flowerScale = 1.08;
-let hoverFlowerIndex = -1;
-let menuFlowerIndex = -1;
+let hoverCover = null;
+let menuCover = null;
 
 const MAX_SOURCE_EDGE = 720;
 const FLOWER_SCALE_MIN = 0.5;
@@ -27,7 +28,7 @@ const FLOWER_SCALE_MAX = 2.2;
 const FLOWER_SCALE_STEP = 0.08;
 
 const flowerMenu = document.getElementById("flower-menu");
-const removeFlowerButton = document.getElementById("remove-flower-button");
+const removeCoverButton = document.getElementById("remove-cover-button");
 
 function setEngineStatus(state, text) {
   engineStatus.dataset.state = state;
@@ -60,25 +61,41 @@ function applyFlowerSize(nextScale) {
 }
 
 function coverStatusText() {
-  if (lastFaceBoxes.length === 0) {
-    return "All flowers removed. Faces are visible.";
+  const faces = lastFaceBoxes.length;
+  const plates = lastPlateBoxes.length;
+  if (faces === 0 && plates === 0) {
+    return "All covers removed. Photo is uncovered.";
   }
-  if (lastFaceBoxes.length === 1) {
-    return "Covered 1 face. Right-click the flower to uncover it.";
+  const bits = [];
+  if (faces === 1) {
+    bits.push("1 face");
+  } else if (faces > 1) {
+    bits.push(`${faces} faces`);
   }
-  return `Covered ${lastFaceBoxes.length} faces. Right-click a flower to uncover a face.`;
+  if (plates === 1) {
+    bits.push("1 plate");
+  } else if (plates > 1) {
+    bits.push(`${plates} plates`);
+  }
+  return `Covered ${bits.join(" and ")}. Right-click a cover to uncover it.`;
 }
 
 function paintResult() {
-  paintFlowersOnResult(sourceCanvas, resultCanvas, lastFaceBoxes, flowerScale);
-  if (hoverFlowerIndex >= 0 && lastFaceBoxes[hoverFlowerIndex]) {
-    markFlowerHover(resultCanvas.getContext("2d"), lastFaceBoxes[hoverFlowerIndex], flowerScale);
+  paintCoversOnResult(sourceCanvas, resultCanvas, lastFaceBoxes, lastPlateBoxes, flowerScale);
+  if (!hoverCover) {
+    return;
+  }
+  const ctx = resultCanvas.getContext("2d");
+  if (hoverCover.kind === "flower" && lastFaceBoxes[hoverCover.index]) {
+    markFlowerHover(ctx, lastFaceBoxes[hoverCover.index], flowerScale);
+  } else if (hoverCover.kind === "plate" && lastPlateBoxes[hoverCover.index]) {
+    markPlateHover(ctx, lastPlateBoxes[hoverCover.index], flowerScale);
   }
 }
 
 function hideFlowerMenu() {
   flowerMenu.hidden = true;
-  menuFlowerIndex = -1;
+  menuCover = null;
 }
 
 function placeFlowerMenu(clientX, clientY) {
@@ -118,33 +135,67 @@ function flowerIndexAt(x, y) {
   return -1;
 }
 
-function setHoverFlower(index) {
-  resultCanvas.classList.toggle("is-over-flower", index >= 0);
-  if (index === hoverFlowerIndex) {
+function coverHitAt(x, y) {
+  let hit = null;
+  let area = Infinity;
+  const flowerIndex = flowerIndexAt(x, y);
+  if (flowerIndex >= 0) {
+    const box = lastFaceBoxes[flowerIndex];
+    const radius = flowerCoverRadius(box, flowerScale);
+    hit = { kind: "flower", index: flowerIndex };
+    area = Math.PI * radius * radius;
+  }
+  for (let i = lastPlateBoxes.length - 1; i >= 0; i -= 1) {
+    const box = lastPlateBoxes[i];
+    if (!pointInPlateLabel(x, y, box, flowerScale)) {
+      continue;
+    }
+    const rect = plateLabelRect(box, flowerScale);
+    const plateArea = rect.width * rect.height;
+    if (plateArea <= area) {
+      hit = { kind: "plate", index: i };
+      area = plateArea;
+    }
+  }
+  return hit;
+}
+
+function sameCover(a, b) {
+  return a && b && a.kind === b.kind && a.index === b.index;
+}
+
+function setHoverCover(hit) {
+  resultCanvas.classList.toggle("is-over-flower", Boolean(hit));
+  if (sameCover(hit, hoverCover)) {
     return;
   }
-  hoverFlowerIndex = index;
+  hoverCover = hit;
   if (resultReady) {
     paintResult();
   }
 }
 
-function openFlowerMenu(index, clientX, clientY) {
-  menuFlowerIndex = index;
-  hoverFlowerIndex = index;
+function openCoverMenu(hit, clientX, clientY) {
+  menuCover = hit;
+  hoverCover = hit;
   resultCanvas.classList.add("is-over-flower");
+  removeCoverButton.textContent = hit.kind === "plate" ? "Remove label" : "Remove flower";
   paintResult();
   placeFlowerMenu(clientX, clientY);
 }
 
-function removeCoveredFace() {
-  if (menuFlowerIndex < 0 || menuFlowerIndex >= lastFaceBoxes.length) {
+function removeCover() {
+  if (!menuCover) {
     hideFlowerMenu();
     return;
   }
-  lastFaceBoxes.splice(menuFlowerIndex, 1);
+  if (menuCover.kind === "flower" && menuCover.index >= 0 && menuCover.index < lastFaceBoxes.length) {
+    lastFaceBoxes.splice(menuCover.index, 1);
+  } else if (menuCover.kind === "plate" && menuCover.index >= 0 && menuCover.index < lastPlateBoxes.length) {
+    lastPlateBoxes.splice(menuCover.index, 1);
+  }
   hideFlowerMenu();
-  hoverFlowerIndex = -1;
+  hoverCover = null;
   resultCanvas.classList.remove("is-over-flower");
   paintResult();
   setConvertStatus(coverStatusText());
@@ -156,15 +207,15 @@ function onResultPointerMove(event) {
   }
   const point = pointOnResultCanvas(event);
   if (!point) {
-    setHoverFlower(-1);
+    setHoverCover(null);
     return;
   }
-  setHoverFlower(flowerIndexAt(point.x, point.y));
+  setHoverCover(coverHitAt(point.x, point.y));
 }
 
 function onResultPointerLeave() {
   if (flowerMenu.hidden) {
-    setHoverFlower(-1);
+    setHoverCover(null);
   }
 }
 
@@ -178,12 +229,12 @@ function onResultContextMenu(event) {
     hideFlowerMenu();
     return;
   }
-  const index = flowerIndexAt(point.x, point.y);
-  if (index < 0) {
+  const hit = coverHitAt(point.x, point.y);
+  if (!hit) {
     hideFlowerMenu();
     return;
   }
-  openFlowerMenu(index, event.clientX, event.clientY);
+  openCoverMenu(hit, event.clientX, event.clientY);
 }
 
 function onResultClick(event) {
@@ -195,13 +246,13 @@ function onResultClick(event) {
     hideFlowerMenu();
     return;
   }
-  const index = flowerIndexAt(point.x, point.y);
-  if (index < 0) {
+  const hit = coverHitAt(point.x, point.y);
+  if (!hit) {
     hideFlowerMenu();
     return;
   }
   event.preventDefault();
-  openFlowerMenu(index, event.clientX, event.clientY);
+  openCoverMenu(hit, event.clientX, event.clientY);
 }
 
 function bindSpotlight(card) {
@@ -221,7 +272,8 @@ function showCanvas(canvas, placeholder) {
 function clearResult() {
   resultReady = false;
   lastFaceBoxes = [];
-  hoverFlowerIndex = -1;
+  lastPlateBoxes = [];
+  hoverCover = null;
   hideFlowerMenu();
   resultCanvas.classList.remove("is-over-flower");
   resultCanvas.hidden = true;
@@ -252,7 +304,7 @@ function insertUploadedPhoto(file) {
       sourceReady = true;
       showCanvas(sourceCanvas, sourcePlaceholder);
       clearResult();
-      setConvertStatus("Photo ready. Press Convert to cover faces.");
+      setConvertStatus("Photo ready. Press Convert to cover faces and plates.");
       refreshButtons();
     })
     .catch(() => {
@@ -294,25 +346,26 @@ async function onConvertClick() {
 
   converting = true;
   resultReady = false;
-  hoverFlowerIndex = -1;
+  hoverCover = null;
   hideFlowerMenu();
   refreshButtons();
-  setConvertStatus("Finding faces…");
+  setConvertStatus("Finding faces and plates…");
 
   try {
-    const boxes = await convertSourceToFlowers(
+    const covers = await convertSourceToCovers(
       sourceCanvas,
       resultCanvas,
       setEngineStatus,
       flowerScale
     );
-    lastFaceBoxes = boxes;
-    if (boxes.length === 0) {
+    lastFaceBoxes = covers.faces;
+    lastPlateBoxes = covers.plates;
+    if (covers.faces.length === 0 && covers.plates.length === 0) {
       resultReady = false;
       resultCanvas.hidden = true;
       resultPlaceholder.hidden = false;
       resultPlaceholder.classList.remove("is-off");
-      setConvertStatus("No faces found. Try a clearer frontal photo.");
+      setConvertStatus("No faces or plates found. Try a clearer photo.");
     } else {
       showCanvas(resultCanvas, resultPlaceholder);
       resultReady = true;
@@ -332,10 +385,10 @@ function onDownloadClick() {
   if (!resultReady) {
     return;
   }
-  hoverFlowerIndex = -1;
+  hoverCover = null;
   resultCanvas.classList.remove("is-over-flower");
   hideFlowerMenu();
-  paintFlowersOnResult(sourceCanvas, resultCanvas, lastFaceBoxes, flowerScale);
+  paintCoversOnResult(sourceCanvas, resultCanvas, lastFaceBoxes, lastPlateBoxes, flowerScale);
   resultCanvas.toBlob((blob) => {
     if (!blob) {
       setConvertStatus("Download failed.");
@@ -378,9 +431,9 @@ function startApp() {
   resultCanvas.addEventListener("pointerleave", onResultPointerLeave);
   resultCanvas.addEventListener("click", onResultClick);
   resultCanvas.addEventListener("contextmenu", onResultContextMenu);
-  removeFlowerButton.addEventListener("click", (event) => {
+  removeCoverButton.addEventListener("click", (event) => {
     event.stopPropagation();
-    removeCoveredFace();
+    removeCover();
   });
   flowerMenu.addEventListener("contextmenu", (event) => event.preventDefault());
   document.addEventListener("click", (event) => {
