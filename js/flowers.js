@@ -1,14 +1,19 @@
 const FLOWER_KINDS = ["daisy", "rose", "tulip", "sunflower", "blossom"];
 
+function flowerCoverRadius(box, flowerScale) {
+  return (Math.max(box.width, box.height) * flowerScale) / 2;
+}
+
 function coverFaceWithFlower(ctx, box, index, flowerScale) {
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
   const size = Math.max(box.width, box.height) * flowerScale;
-  const kind = FLOWER_KINDS[index % FLOWER_KINDS.length];
+  const kindIndex = box.kindIndex == null ? index : box.kindIndex;
+  const kind = FLOWER_KINDS[kindIndex % FLOWER_KINDS.length];
 
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(((index % 7) - 3) * 0.08);
+  ctx.rotate(((kindIndex % 7) - 3) * 0.08);
   drawCoverDisk(ctx, size, kind);
   if (kind === "daisy") insertDaisy(ctx, size);
   else if (kind === "rose") insertRose(ctx, size);
@@ -144,4 +149,17 @@ function insertBlossom(ctx, size) {
   ctx.arc(0, 0, size * 0.08, 0, Math.PI * 2);
   ctx.fillStyle = "#f7e1a0";
   ctx.fill();
+}
+
+function markFlowerHover(ctx, box, flowerScale) {
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  const radius = flowerCoverRadius(box, flowerScale);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius + 3, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(27, 36, 51, 0.5)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.restore();
 }

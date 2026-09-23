@@ -52,7 +52,11 @@
             </button>
           </div>
           <div class="frame" id="result-frame">
-            <canvas id="result-canvas" hidden></canvas>
+            <canvas
+              id="result-canvas"
+              hidden
+              aria-label="Flower cover. Right-click a flower to uncover that face."
+            ></canvas>
             <div id="result-placeholder" class="placeholder">
               <strong>Converted photo appears here</strong>
               <span>Press Convert after you add a photo.</span>
@@ -89,6 +93,12 @@
     </footer>
 
     <input id="file-input" type="file" accept="image/*" hidden />
+
+    <div id="flower-menu" class="flower-menu" hidden role="menu">
+      <button type="button" id="remove-flower-button" class="flower-menu-item" role="menuitem">
+        Remove flower
+      </button>
+    </div>
 
     <script src="vendor/pico.js"></script>
     <script src="js/prism-bg.js"></script>

@@ -99,6 +99,9 @@ async function convertSourceToFlowers(sourceCanvas, resultCanvas, onStatus, flow
   if (onStatus) onStatus("ready", "Local detector ready");
   await new Promise((resolve) => window.setTimeout(resolve, 20));
   const boxes = findFaceBoxes(sourceCanvas);
+  boxes.forEach((box, index) => {
+    box.kindIndex = index;
+  });
   paintFlowersOnResult(sourceCanvas, resultCanvas, boxes, flowerScale);
   return boxes;
 }

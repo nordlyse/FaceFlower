@@ -196,6 +196,51 @@ h2 {
   border-radius: 16px;
 }
 
+#result-canvas {
+  cursor: default;
+}
+
+#result-canvas.is-over-flower {
+  cursor: pointer;
+}
+
+.flower-menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 188px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.flower-menu[hidden] {
+  display: none !important;
+}
+
+.flower-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.flower-menu-item:hover,
+.flower-menu-item:focus {
+  background: rgba(196, 69, 77, 0.12);
+  color: var(--rose);
+  outline: none;
+}
+
 .placeholder {
   display: grid;
   gap: 8px;
