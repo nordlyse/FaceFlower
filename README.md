@@ -12,7 +12,7 @@ Live source: [github.com/nordlyse/FaceFlower](https://github.com/nordlyse/FaceFl
 2. Press **Upload** or drop a JPEG, PNG, or WebP photo onto the original pane.
 3. Press **Convert**. The app looks for faces and plates, then draws covers on a copy of the photo.
 4. Use **Cover size** − / + if the flowers or stickers should be smaller or larger.
-5. Right-click (or click) a cover and choose **Remove flower** or **Remove label** if that person or plate should stay visible.
+5. Right-click (or click) a cover and choose **Remove flower** or **Remove plate** if that person or plate should stay visible.
 6. Press **Download** for a PNG named `faceflower.png`.
 
 Photos are scaled so the long edge stays at 720 px, which keeps Convert responsive. EXIF rotation is applied when the browser loads the file.

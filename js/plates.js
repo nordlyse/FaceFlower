@@ -14,7 +14,13 @@ function plateLabelRect(box, flowerScale) {
 
 function pointInPlateLabel(x, y, box, flowerScale) {
   const rect = plateLabelRect(box, flowerScale);
-  return x >= rect.x && y >= rect.y && x <= rect.x + rect.width && y <= rect.y + rect.height;
+  const slop = Math.max(4, Math.min(rect.width, rect.height) * 0.08);
+  return (
+    x >= rect.x - slop &&
+    y >= rect.y - slop &&
+    x <= rect.x + rect.width + slop &&
+    y <= rect.y + rect.height + slop
+  );
 }
 
 function boxIou(a, b) {

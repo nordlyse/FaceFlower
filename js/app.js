@@ -136,28 +136,16 @@ function flowerIndexAt(x, y) {
 }
 
 function coverHitAt(x, y) {
-  let hit = null;
-  let area = Infinity;
+  for (let i = lastPlateBoxes.length - 1; i >= 0; i -= 1) {
+    if (pointInPlateLabel(x, y, lastPlateBoxes[i], flowerScale)) {
+      return { kind: "plate", index: i };
+    }
+  }
   const flowerIndex = flowerIndexAt(x, y);
   if (flowerIndex >= 0) {
-    const box = lastFaceBoxes[flowerIndex];
-    const radius = flowerCoverRadius(box, flowerScale);
-    hit = { kind: "flower", index: flowerIndex };
-    area = Math.PI * radius * radius;
+    return { kind: "flower", index: flowerIndex };
   }
-  for (let i = lastPlateBoxes.length - 1; i >= 0; i -= 1) {
-    const box = lastPlateBoxes[i];
-    if (!pointInPlateLabel(x, y, box, flowerScale)) {
-      continue;
-    }
-    const rect = plateLabelRect(box, flowerScale);
-    const plateArea = rect.width * rect.height;
-    if (plateArea <= area) {
-      hit = { kind: "plate", index: i };
-      area = plateArea;
-    }
-  }
-  return hit;
+  return null;
 }
 
 function sameCover(a, b) {
@@ -179,7 +167,7 @@ function openCoverMenu(hit, clientX, clientY) {
   menuCover = hit;
   hoverCover = hit;
   resultCanvas.classList.add("is-over-flower");
-  removeCoverButton.textContent = hit.kind === "plate" ? "Remove label" : "Remove flower";
+  removeCoverButton.textContent = hit.kind === "plate" ? "Remove plate" : "Remove flower";
   paintResult();
   placeFlowerMenu(clientX, clientY);
 }
