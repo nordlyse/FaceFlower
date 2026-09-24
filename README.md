@@ -46,7 +46,7 @@ There is no npm install, no CDN script, no cloud vision API, and no OpenCV / Med
 
 **Face finder.** pico.js runs a packed cascade on grayscale pixels on the main thread. A copy of the canvas RGBA buffer is passed in so the detector reads the photo correctly.
 
-**Plate finder.** `js/plates.js` looks for bright, wide rectangles with strong vertical edges (letter-like strokes), joins them, and skips boxes that overlap a face. It is a local heuristic, not a commercial ANPR product, so very small, blurred, or steeply angled plates can be missed. Wrong stickers can be removed with the context menu.
+**Plate finder.** `js/plates.js` looks for bright, wide rectangles with strong vertical edges (letter-like strokes), joins them, and skips boxes that overlap a face. It is a local heuristic, not a commercial ANPR product, so very small, blurred, or steeply angled plates can be missed. Right-click (or click) a NO NUMBER sticker and choose **Remove plate** if that plate should stay visible.
 
 **Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (**MIT**). That package is **not** included; the shader in this repo is original FaceFlower code.
 

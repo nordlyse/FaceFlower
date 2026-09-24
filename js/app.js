@@ -77,7 +77,7 @@ function coverStatusText() {
   } else if (plates > 1) {
     bits.push(`${plates} plates`);
   }
-  return `Covered ${bits.join(" and ")}. Right-click a cover to uncover it.`;
+  return `Covered ${bits.join(" and ")}. Right-click a cover and choose Remove flower or Remove plate.`;
 }
 
 function paintResult() {
