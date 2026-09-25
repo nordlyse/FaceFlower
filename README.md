@@ -74,6 +74,10 @@ vendor/pico.js      Face library (MIT)
 models/facefinder   Face cascade
 ```
 
+## Disclaimer
+
+Use of this app is at your own risk. No liability is accepted for any outcome that arises from using FaceFlower, including missed faces or plates, photos that still identify people or vehicles, or any other result of sharing the output. The software is provided as-is, without warranty of any kind.
+
 ## Licence
 
 Third-party code that ships with the app:
