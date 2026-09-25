@@ -50,23 +50,75 @@ footer {
 }
 
 .topbar {
+  z-index: 8;
+  position: sticky;
+  top: 14px;
+  display: flex;
+  justify-content: center;
+  padding: 14px 7vw 0;
+}
+
+.topbar-shell {
+  position: relative;
+  width: min(1120px, 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 28px 7vw 12px;
+  gap: 20px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 18px 46px rgba(27, 36, 51, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(22px) saturate(1.18);
+  overflow: hidden;
+  --spot-x: 18%;
+  --spot-y: 40%;
+}
+
+.topbar-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    280px circle at var(--spot-x) var(--spot-y),
+    rgba(255, 224, 102, 0.2),
+    transparent 46%
+  );
+}
+
+.topbar-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 36%,
+    rgba(255, 255, 255, 0.42) 50%,
+    transparent 64%
+  );
+  background-size: 220% 100%;
+  animation: topbar-shine 7.5s ease-in-out infinite;
 }
 
 .brand {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  flex: 1 1 auto;
 }
 
 .mark {
-  width: 46px;
-  height: 46px;
-  border-radius: 16px;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background:
     radial-gradient(circle at 50% 50%, var(--daisy) 0 7px, transparent 8px),
     radial-gradient(circle at 50% 18%, #fff4d6 0 8px, transparent 9px),
@@ -74,7 +126,9 @@ footer {
     radial-gradient(circle at 50% 82%, #fff4d6 0 8px, transparent 9px),
     radial-gradient(circle at 18% 50%, #fff4d6 0 8px, transparent 9px),
     linear-gradient(160deg, #1c261c, #101610);
-  box-shadow: 0 0 0 1px var(--line), 0 10px 30px rgba(255, 224, 102, 0.15);
+  box-shadow:
+    0 0 0 1px rgba(27, 36, 51, 0.08),
+    0 8px 22px rgba(255, 224, 102, 0.22);
 }
 
 h1,
@@ -83,25 +137,80 @@ p {
   margin: 0;
 }
 
-h1 {
-  font-size: 1.45rem;
-  letter-spacing: -0.03em;
+.brand-copy {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
-.brand p,
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+}
+
+.brand-face {
+  color: var(--ink);
+}
+
+.brand-flower {
+  background-image:
+    linear-gradient(
+      100deg,
+      transparent 38%,
+      rgba(255, 255, 255, 0.92) 50%,
+      transparent 62%
+    ),
+    linear-gradient(90deg, #c4454d, #d4a017, #1f9d63, #c4454d);
+  background-size: 220% 100%, 240% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: brand-flow 6.5s ease-in-out infinite;
+}
+
+.brand-tag,
 footer p,
 .status,
 .placeholder span {
   color: var(--muted);
 }
 
-.chip {
-  margin: 0;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.55);
+.brand-tag {
+  margin-top: 3px;
   font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 8px 14px 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 36, 51, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.chip::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 0 currentColor;
+  animation: chip-pulse 1.9s ease-out infinite;
 }
 
 .chip[data-state="ready"] {
@@ -112,8 +221,46 @@ footer p,
   color: var(--rose);
 }
 
+.chip[data-state="error"]::before {
+  animation: none;
+  box-shadow: none;
+}
+
+@keyframes topbar-shine {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+@keyframes brand-flow {
+  0% {
+    background-position: 120% 0, 0% 50%;
+  }
+  50% {
+    background-position: 40% 0, 100% 50%;
+  }
+  100% {
+    background-position: -20% 0, 0% 50%;
+  }
+}
+
+@keyframes chip-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(31, 157, 99, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(31, 157, 99, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(31, 157, 99, 0);
+  }
+}
+
 main {
-  padding: 18px 7vw 40px;
+  padding: 22px 7vw 40px;
 }
 
 .board {
@@ -389,7 +536,32 @@ footer {
   }
 
   .topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    top: 10px;
+  }
+
+  .topbar-shell {
+    border-radius: 20px;
+    padding: 10px;
+  }
+
+  .brand-tag {
+    white-space: normal;
+  }
+
+  .brand-title {
+    font-size: 1.28rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-shell::after,
+  .brand-flower,
+  .chip::before {
+    animation: none;
+  }
+
+  .brand-flower {
+    background-image: linear-gradient(90deg, #c4454d, #d4a017, #1f9d63);
+    background-size: 100% 100%;
   }
 }

@@ -610,6 +610,7 @@ function bindDrop(frame) {
 }
 
 function startApp() {
+  bindSpotlight(document.getElementById("topbar-shell"));
   bindSpotlight(document.getElementById("source-card"));
   bindSpotlight(document.getElementById("result-card"));
   bindDrop(sourceFrame);

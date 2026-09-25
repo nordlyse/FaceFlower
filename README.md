@@ -50,6 +50,8 @@ There is no npm install, no CDN script, no cloud vision API, and no OpenCV / Med
 
 **Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (**MIT**). That package is **not** included; the shader in this repo is original FaceFlower code.
 
+**Header.** The floating glass bar and title shine are FaceFlower CSS. The look takes cues from React Bits [Card Nav](https://reactbits.dev/components/card-nav), [Gradient Text](https://reactbits.dev/text-animations/gradient-text), and [Shiny Text](https://reactbits.dev/text-animations/shiny-text) (**MIT**). Those packages are **not** included.
+
 Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pico.js is MIT. Nothing Apache-2.0 is bundled today.
 
 ## Privacy
@@ -82,6 +84,6 @@ Third-party code that ships with the app:
 Not bundled, listed only because they show up in docs or local run:
 
 - **python3 -m http.server** — optional host, [Python Software Foundation Licence](https://docs.python.org/3/license.html).
-- **React Bits Prism** — MIT look reference only. FaceFlower does not include React Bits or OGL.
+- **React Bits** (Prism, Card Nav, Gradient Text, Shiny Text) — MIT look reference only. FaceFlower does not include React Bits, GSAP, or OGL.
 
 FaceFlower app files (HTML, CSS, and `js/` except `vendor/pico.js`) use MIT, same as pico.js, unless a file says otherwise.

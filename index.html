@@ -18,14 +18,18 @@
     <canvas id="prism-bg" class="prism-bg" aria-hidden="true"></canvas>
 
     <header class="topbar">
-      <div class="brand">
-        <span class="mark" aria-hidden="true"></span>
-        <div>
-          <h1>FaceFlower</h1>
-          <p>Cover faces and plates before you share.</p>
+      <div class="topbar-shell" id="topbar-shell">
+        <div class="brand">
+          <span class="mark" aria-hidden="true"></span>
+          <div class="brand-copy">
+            <h1 class="brand-title" aria-label="FaceFlower">
+              <span class="brand-face" aria-hidden="true">Face</span><span class="brand-flower" aria-hidden="true">Flower</span>
+            </h1>
+            <p class="brand-tag">Cover faces and plates before you share.</p>
+          </div>
         </div>
+        <p id="engine-status" class="chip" data-state="ready">Ready</p>
       </div>
-      <p id="engine-status" class="chip" data-state="ready">Ready</p>
     </header>
 
     <main>
