@@ -22,7 +22,7 @@ let flowerScale = 1.08;
 let hoverCover = null;
 let menuCover = null;
 
-const MAX_SOURCE_EDGE = 720;
+const MAX_SOURCE_EDGE = 960;
 const FLOWER_SCALE_MIN = 0.5;
 const FLOWER_SCALE_MAX = 2.2;
 const FLOWER_SCALE_STEP = 0.08;

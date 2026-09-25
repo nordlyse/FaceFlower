@@ -80,10 +80,29 @@ function downscaleRgbaAndGray(width, height, rgba, workWidth, workHeight) {
   return { gray: gray, rgba: smallRgba };
 }
 
+function stretchGray(gray) {
+  let lo = 255;
+  let hi = 0;
+  for (let i = 0; i < gray.length; i += 1) {
+    const v = gray[i];
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  if (hi - lo < 28) {
+    return gray;
+  }
+  const out = new Uint8Array(gray.length);
+  const scale = 255 / (hi - lo);
+  for (let i = 0; i < gray.length; i += 1) {
+    out[i] = Math.round((gray[i] - lo) * scale);
+  }
+  return out;
+}
+
 function plateColorOk(rgba, width, x, y, rw, rh) {
   let sat = 0;
+  let lum = 0;
   let bright = 0;
-  let yellow = 0;
   let n = 0;
   const stepX = Math.max(1, Math.floor(rw / 6));
   const stepY = Math.max(1, Math.floor(rh / 3));
@@ -98,11 +117,9 @@ function plateColorOk(rgba, width, x, y, rw, rh) {
       const mx = Math.max(r, g, b);
       const mn = Math.min(r, g, b);
       sat += mx - mn;
-      if (mx > 145) {
+      lum += (r * 77 + g * 150 + b * 29) >> 8;
+      if (mx > 88) {
         bright += 1;
-      }
-      if (r > 140 && g > 130 && b < 125 && r + g > b * 2.1) {
-        yellow += 1;
       }
       n += 1;
     }
@@ -110,11 +127,12 @@ function plateColorOk(rgba, width, x, y, rw, rh) {
   if (n === 0) {
     return false;
   }
+  const meanLum = lum / n;
   const meanSat = sat / n;
-  if (bright / n < 0.32) {
+  if (meanLum < 28 && bright / n < 0.12) {
     return false;
   }
-  if (meanSat > 95 && yellow / n < 0.22) {
+  if (meanSat > 150 && meanLum < 70) {
     return false;
   }
   return true;
@@ -289,7 +307,7 @@ function findPlateBoxes(width, height, rgba, faceBoxes) {
   const workWidth = Math.max(1, Math.round(width * scale));
   const workHeight = Math.max(1, Math.round(height * scale));
   const scaled = downscaleRgbaAndGray(width, height, rgba, workWidth, workHeight);
-  const gray = scaled.gray;
+  const gray = stretchGray(scaled.gray);
   const gx = new Uint16Array(workWidth * workHeight);
 
   let gxSum = 0;
@@ -303,7 +321,7 @@ function findPlateBoxes(width, height, rgba, faceBoxes) {
     }
   }
   const gxMean = gxSum / (workWidth * workHeight);
-  const gxCut = Math.max(18, gxMean * 1.55);
+  const gxCut = Math.max(10, Math.min(22, gxMean * 1.18));
 
   const bin = new Uint8Array(workWidth * workHeight);
   for (let i = 0; i < gx.length; i += 1) {
@@ -313,34 +331,36 @@ function findPlateBoxes(width, height, rgba, faceBoxes) {
   }
 
   const closed = dilateVertical(
-    dilateHorizontal(bin, workWidth, workHeight, Math.max(8, Math.round(workWidth * 0.03))),
+    dilateHorizontal(bin, workWidth, workHeight, Math.max(5, Math.round(workWidth * 0.02))),
     workWidth,
     workHeight,
     2
   );
   const blobs = blobBoxes(closed, workWidth, workHeight);
-  const minW = Math.max(36, Math.round(workWidth * 0.1));
-  const minH = Math.max(10, Math.round(workHeight * 0.025));
-  const maxH = Math.round(workHeight * 0.28);
+  const minW = Math.max(22, Math.round(workWidth * 0.045));
+  const minH = Math.max(8, Math.round(workHeight * 0.018));
+  const maxH = Math.round(workHeight * 0.38);
+  const maxW = Math.round(workWidth * 0.92);
   const candidates = [];
 
   for (let i = 0; i < blobs.length; i += 1) {
     const box = blobs[i];
     const aspect = box.width / Math.max(1, box.height);
     const fill = box.area / Math.max(1, box.width * box.height);
-    if (box.width < minW || box.height < minH || box.height > maxH) {
+    if (box.width < minW || box.width > maxW || box.height < minH || box.height > maxH) {
       continue;
     }
-    if (aspect < 2.05 || aspect > 7.2) {
+    if (aspect < 1.55 || aspect > 8.8) {
       continue;
     }
-    if (fill < 0.28 || fill > 0.94) {
+    if (fill < 0.16 || fill > 0.98) {
       continue;
     }
     if (!plateColorOk(scaled.rgba, workWidth, box.x, box.y, box.width, box.height)) {
       continue;
     }
-    box.score = aspect * fill * box.width;
+    const aspectFit = 1 / (1 + Math.abs(aspect - 4.6) * 0.12);
+    box.score = aspectFit * fill * box.width;
     candidates.push(box);
   }
 
@@ -358,7 +378,7 @@ function findPlateBoxes(width, height, rgba, faceBoxes) {
     const box = picked[i];
     let blocked = false;
     for (let f = 0; f < facesWork.length; f += 1) {
-      if (boxIou(box, facesWork[f]) > 0.22) {
+      if (boxIou(box, facesWork[f]) > 0.4) {
         blocked = true;
         break;
       }

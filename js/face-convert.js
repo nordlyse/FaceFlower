@@ -11,6 +11,25 @@ function copyRgbaBytes(imageData) {
   return rgba;
 }
 
+function stretchGray(gray) {
+  let lo = 255;
+  let hi = 0;
+  for (let i = 0; i < gray.length; i += 1) {
+    const v = gray[i];
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  if (hi - lo < 28) {
+    return gray;
+  }
+  const out = new Uint8Array(gray.length);
+  const scale = 255 / (hi - lo);
+  for (let i = 0; i < gray.length; i += 1) {
+    out[i] = Math.round((gray[i] - lo) * scale);
+  }
+  return out;
+}
+
 function rgbaToGray(rgba, nrows, ncols) {
   const gray = new Uint8Array(nrows * ncols);
   for (let r = 0; r < nrows; r += 1) {
@@ -41,7 +60,7 @@ function findBoxesFromRgba(width, height, rgba) {
   const scale = Math.min(1, DETECT_MAX_EDGE / Math.max(width, height));
   const workWidth = Math.max(1, Math.round(width * scale));
   const workHeight = Math.max(1, Math.round(height * scale));
-  const fullGray = rgbaToGray(rgba, height, width);
+  const fullGray = stretchGray(rgbaToGray(rgba, height, width));
   let pixels = fullGray;
   if (scale !== 1) {
     pixels = new Uint8Array(workWidth * workHeight);
@@ -60,9 +79,9 @@ function findBoxesFromRgba(width, height, rgba) {
       classifyRegion,
       {
         shiftfactor: 0.1,
-        minsize: Math.max(20, Math.round(Math.min(workWidth, workHeight) * 0.05)),
+        minsize: Math.max(16, Math.round(Math.min(workWidth, workHeight) * 0.028)),
         maxsize: Math.min(workWidth, workHeight),
-        scalefactor: 1.1,
+        scalefactor: 1.08,
       }
     ),
     0.2

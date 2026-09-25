@@ -15,7 +15,7 @@ Live source: [github.com/nordlyse/FaceFlower](https://github.com/nordlyse/FaceFl
 5. Right-click (or click) a cover and choose **Remove flower** or **Remove plate** if that person or plate should stay visible.
 6. Press **Download** for a PNG named `faceflower.png`.
 
-Photos are scaled so the long edge stays at 720 px, which keeps Convert responsive. EXIF rotation is applied when the browser loads the file.
+Photos are scaled so the long edge stays at 960 px, which keeps Convert responsive. EXIF rotation is applied when the browser loads the file.
 
 ## Run locally
 
