@@ -21,13 +21,17 @@ let lastPlateBoxes = [];
 let flowerScale = 1.08;
 let hoverCover = null;
 let menuCover = null;
+let plateDrag = null;
+let skipCoverClick = false;
 
 const MAX_SOURCE_EDGE = 960;
 const FLOWER_SCALE_MIN = 0.5;
 const FLOWER_SCALE_MAX = 2.2;
 const FLOWER_SCALE_STEP = 0.08;
+const PLATE_DRAG_SLOP = 5;
 
 const flowerMenu = document.getElementById("flower-menu");
+const moveCoverButton = document.getElementById("move-cover-button");
 const removeCoverButton = document.getElementById("remove-cover-button");
 
 function setEngineStatus(state, text) {
@@ -77,7 +81,7 @@ function coverStatusText() {
   } else if (plates > 1) {
     bits.push(`${plates} plates`);
   }
-  return `Covered ${bits.join(" and ")}. Right-click a cover and choose Remove flower or Remove plate.`;
+  return `Covered ${bits.join(" and ")}. Right-click a cover to Remove flower or Remove plate. Drag a plate sticker, or choose Move plate, to line it up.`;
 }
 
 function paintResult() {
@@ -93,9 +97,22 @@ function paintResult() {
   }
 }
 
+function refreshCoverCursor() {
+  resultCanvas.classList.toggle(
+    "is-over-flower",
+    Boolean(hoverCover && hoverCover.kind === "flower") && !plateDrag
+  );
+  resultCanvas.classList.toggle(
+    "is-over-plate",
+    Boolean(hoverCover && hoverCover.kind === "plate") && !plateDrag
+  );
+  resultCanvas.classList.toggle("is-moving-plate", Boolean(plateDrag));
+}
+
 function hideFlowerMenu() {
   flowerMenu.hidden = true;
   menuCover = null;
+  moveCoverButton.hidden = true;
 }
 
 function placeFlowerMenu(clientX, clientY) {
@@ -109,10 +126,20 @@ function placeFlowerMenu(clientX, clientY) {
   flowerMenu.style.top = `${Math.max(pad, top)}px`;
 }
 
-function pointOnResultCanvas(event) {
+function pointOnResultCanvas(event, requireInside) {
   const rect = resultCanvas.getBoundingClientRect();
   if (rect.width < 1 || rect.height < 1) {
     return null;
+  }
+  if (requireInside) {
+    if (
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    ) {
+      return null;
+    }
   }
   return {
     x: ((event.clientX - rect.left) / rect.width) * resultCanvas.width,
@@ -153,11 +180,12 @@ function sameCover(a, b) {
 }
 
 function setHoverCover(hit) {
-  resultCanvas.classList.toggle("is-over-flower", Boolean(hit));
   if (sameCover(hit, hoverCover)) {
+    refreshCoverCursor();
     return;
   }
   hoverCover = hit;
+  refreshCoverCursor();
   if (resultReady) {
     paintResult();
   }
@@ -166,10 +194,96 @@ function setHoverCover(hit) {
 function openCoverMenu(hit, clientX, clientY) {
   menuCover = hit;
   hoverCover = hit;
-  resultCanvas.classList.add("is-over-flower");
+  moveCoverButton.hidden = hit.kind !== "plate";
   removeCoverButton.textContent = hit.kind === "plate" ? "Remove plate" : "Remove flower";
+  refreshCoverCursor();
   paintResult();
   placeFlowerMenu(clientX, clientY);
+}
+
+function plateBoxFromDrag() {
+  if (!plateDrag) {
+    return null;
+  }
+  return lastPlateBoxes[plateDrag.index] || null;
+}
+
+function dropPlateDrag() {
+  if (!plateDrag) {
+    return;
+  }
+  plateDrag = null;
+  refreshCoverCursor();
+  if (resultReady) {
+    setConvertStatus(coverStatusText());
+  }
+}
+
+function cancelPlateDrag() {
+  if (!plateDrag) {
+    return;
+  }
+  const box = plateBoxFromDrag();
+  if (box) {
+    box.x = plateDrag.origX;
+    box.y = plateDrag.origY;
+  }
+  plateDrag = null;
+  refreshCoverCursor();
+  if (resultReady) {
+    paintResult();
+    setConvertStatus(coverStatusText());
+  }
+}
+
+function shiftPlateFromPoint(point) {
+  const box = plateBoxFromDrag();
+  if (!box) {
+    dropPlateDrag();
+    return;
+  }
+  if (plateDrag.follow) {
+    if (plateDrag.grabDx == null) {
+      plateDrag.grabDx = point.x - box.x;
+      plateDrag.grabDy = point.y - box.y;
+    }
+    box.x = point.x - plateDrag.grabDx;
+    box.y = point.y - plateDrag.grabDy;
+  } else {
+    box.x = plateDrag.origX + (point.x - plateDrag.startX);
+    box.y = plateDrag.origY + (point.y - plateDrag.startY);
+  }
+  clampPlateBox(box, resultCanvas.width, resultCanvas.height, flowerScale);
+  plateDrag.moved = true;
+  hoverCover = { kind: "plate", index: plateDrag.index };
+  refreshCoverCursor();
+  paintResult();
+}
+
+function beginPlateMoveFromMenu() {
+  if (!menuCover || menuCover.kind !== "plate") {
+    hideFlowerMenu();
+    return;
+  }
+  const box = lastPlateBoxes[menuCover.index];
+  if (!box) {
+    hideFlowerMenu();
+    return;
+  }
+  plateDrag = {
+    index: menuCover.index,
+    origX: box.x,
+    origY: box.y,
+    follow: true,
+    moved: false,
+    grabDx: null,
+    grabDy: null,
+  };
+  hoverCover = { kind: "plate", index: menuCover.index };
+  hideFlowerMenu();
+  refreshCoverCursor();
+  paintResult();
+  setConvertStatus("Move the sticker onto the plate, then click to drop. Escape cancels.");
 }
 
 function removeCover() {
@@ -184,7 +298,7 @@ function removeCover() {
   }
   hideFlowerMenu();
   hoverCover = null;
-  resultCanvas.classList.remove("is-over-flower");
+  refreshCoverCursor();
   paintResult();
   setConvertStatus(coverStatusText());
 }
@@ -194,6 +308,21 @@ function onResultPointerMove(event) {
     return;
   }
   const point = pointOnResultCanvas(event);
+  if (plateDrag) {
+    if (!point) {
+      return;
+    }
+    if (!plateDrag.follow) {
+      const dx = point.x - plateDrag.startX;
+      const dy = point.y - plateDrag.startY;
+      if (!plateDrag.moved && dx * dx + dy * dy < PLATE_DRAG_SLOP * PLATE_DRAG_SLOP) {
+        return;
+      }
+      hideFlowerMenu();
+    }
+    shiftPlateFromPoint(point);
+    return;
+  }
   if (!point) {
     setHoverCover(null);
     return;
@@ -202,8 +331,63 @@ function onResultPointerMove(event) {
 }
 
 function onResultPointerLeave() {
+  if (plateDrag) {
+    return;
+  }
   if (flowerMenu.hidden) {
     setHoverCover(null);
+  }
+}
+
+function onResultPointerDown(event) {
+  if (!resultReady || event.button !== 0) {
+    return;
+  }
+  if (plateDrag && plateDrag.follow) {
+    event.preventDefault();
+    skipCoverClick = true;
+    dropPlateDrag();
+    return;
+  }
+  const point = pointOnResultCanvas(event);
+  if (!point) {
+    return;
+  }
+  const hit = coverHitAt(point.x, point.y);
+  if (!hit || hit.kind !== "plate") {
+    return;
+  }
+  const box = lastPlateBoxes[hit.index];
+  if (!box) {
+    return;
+  }
+  plateDrag = {
+    index: hit.index,
+    origX: box.x,
+    origY: box.y,
+    startX: point.x,
+    startY: point.y,
+    follow: false,
+    moved: false,
+  };
+  hoverCover = hit;
+  refreshCoverCursor();
+  if (typeof resultCanvas.setPointerCapture === "function") {
+    resultCanvas.setPointerCapture(event.pointerId);
+  }
+}
+
+function onResultPointerUp(event) {
+  if (!plateDrag || plateDrag.follow) {
+    return;
+  }
+  const moved = plateDrag.moved;
+  if (typeof resultCanvas.releasePointerCapture === "function" && resultCanvas.hasPointerCapture(event.pointerId)) {
+    resultCanvas.releasePointerCapture(event.pointerId);
+  }
+  dropPlateDrag();
+  if (moved) {
+    skipCoverClick = true;
   }
 }
 
@@ -212,6 +396,9 @@ function onResultContextMenu(event) {
     return;
   }
   event.preventDefault();
+  if (plateDrag) {
+    return;
+  }
   const point = pointOnResultCanvas(event);
   if (!point) {
     hideFlowerMenu();
@@ -227,6 +414,16 @@ function onResultContextMenu(event) {
 
 function onResultClick(event) {
   if (!resultReady) {
+    return;
+  }
+  if (skipCoverClick) {
+    skipCoverClick = false;
+    return;
+  }
+  if (plateDrag) {
+    if (plateDrag.follow) {
+      dropPlateDrag();
+    }
     return;
   }
   const point = pointOnResultCanvas(event);
@@ -262,8 +459,10 @@ function clearResult() {
   lastFaceBoxes = [];
   lastPlateBoxes = [];
   hoverCover = null;
+  plateDrag = null;
+  skipCoverClick = false;
   hideFlowerMenu();
-  resultCanvas.classList.remove("is-over-flower");
+  refreshCoverCursor();
   resultCanvas.hidden = true;
   resultPlaceholder.hidden = false;
   resultPlaceholder.classList.remove("is-off");
@@ -335,7 +534,10 @@ async function onConvertClick() {
   converting = true;
   resultReady = false;
   hoverCover = null;
+  plateDrag = null;
+  skipCoverClick = false;
   hideFlowerMenu();
+  refreshCoverCursor();
   refreshButtons();
   setConvertStatus("Finding faces and plates…");
 
@@ -374,7 +576,9 @@ function onDownloadClick() {
     return;
   }
   hoverCover = null;
-  resultCanvas.classList.remove("is-over-flower");
+  plateDrag = null;
+  skipCoverClick = false;
+  refreshCoverCursor();
   hideFlowerMenu();
   paintCoversOnResult(sourceCanvas, resultCanvas, lastFaceBoxes, lastPlateBoxes, flowerScale);
   resultCanvas.toBlob((blob) => {
@@ -417,20 +621,47 @@ function startApp() {
   sizeUpButton.addEventListener("click", () => applyFlowerSize(flowerScale + FLOWER_SCALE_STEP));
   resultCanvas.addEventListener("pointermove", onResultPointerMove);
   resultCanvas.addEventListener("pointerleave", onResultPointerLeave);
+  resultCanvas.addEventListener("pointerdown", onResultPointerDown);
+  resultCanvas.addEventListener("pointerup", onResultPointerUp);
+  resultCanvas.addEventListener("pointercancel", onResultPointerUp);
   resultCanvas.addEventListener("click", onResultClick);
   resultCanvas.addEventListener("contextmenu", onResultContextMenu);
+  moveCoverButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    beginPlateMoveFromMenu();
+  });
   removeCoverButton.addEventListener("click", (event) => {
     event.stopPropagation();
     removeCover();
   });
   flowerMenu.addEventListener("contextmenu", (event) => event.preventDefault());
+  document.addEventListener("pointermove", (event) => {
+    if (!plateDrag || !plateDrag.follow) {
+      return;
+    }
+    const point = pointOnResultCanvas(event, true);
+    if (point) {
+      shiftPlateFromPoint(point);
+    }
+  });
   document.addEventListener("click", (event) => {
+    if (plateDrag && plateDrag.follow) {
+      if (!flowerMenu.contains(event.target)) {
+        skipCoverClick = true;
+        dropPlateDrag();
+      }
+      return;
+    }
     if (!flowerMenu.hidden && !flowerMenu.contains(event.target) && event.target !== resultCanvas) {
       hideFlowerMenu();
     }
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      if (plateDrag) {
+        cancelPlateDrag();
+        return;
+      }
       hideFlowerMenu();
     }
   });

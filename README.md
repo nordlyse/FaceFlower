@@ -12,7 +12,7 @@ Live source: [github.com/nordlyse/FaceFlower](https://github.com/nordlyse/FaceFl
 2. Press **Upload** or drop a JPEG, PNG, or WebP photo onto the original pane.
 3. Press **Convert**. The app looks for faces and plates, then draws covers on a copy of the photo.
 4. Use **Cover size** − / + if the flowers or stickers should be smaller or larger.
-5. Right-click (or click) a cover and choose **Remove flower** or **Remove plate** if that person or plate should stay visible.
+5. Right-click (or click) a cover and choose **Remove flower** or **Remove plate** if that person or plate should stay visible. For a plate sticker that missed the number, choose **Move plate** (or drag the sticker) and drop it on the plate.
 6. Press **Download** for a PNG named `faceflower.png`.
 
 Photos are scaled so the long edge stays at 960 px, which keeps Convert responsive. EXIF rotation is applied when the browser loads the file.
@@ -46,7 +46,7 @@ There is no npm install, no CDN script, no cloud vision API, and no OpenCV / Med
 
 **Face finder.** pico.js runs a packed cascade on grayscale pixels on the main thread. A copy of the canvas RGBA buffer is passed in so the detector reads the photo correctly.
 
-**Plate finder.** `js/plates.js` looks for bright, wide rectangles with strong vertical edges (letter-like strokes), joins them, and skips boxes that overlap a face. It is a local heuristic, not a commercial ANPR product, so very small, blurred, or steeply angled plates can be missed. Right-click (or click) a NO NUMBER sticker and choose **Remove plate** if that plate should stay visible.
+**Plate finder.** `js/plates.js` looks for bright, wide rectangles with strong vertical edges (letter-like strokes), joins them, and skips boxes that overlap a face. It is a local heuristic, not a commercial ANPR product, so very small, blurred, or steeply angled plates can be missed. Right-click (or click) a NO NUMBER sticker and choose **Move plate** to drag it onto the number, or **Remove plate** if that plate should stay visible. Dragging the sticker also works.
 
 **Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (**MIT**). That package is **not** included; the shader in this repo is original FaceFlower code.
 
@@ -63,7 +63,7 @@ Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pic
 ```
 index.html          App shell
 css/app.css         Layout and theme
-js/app.js           Upload, convert, size, menu, download
+js/app.js           Upload, convert, size, menu, move plate, download
 js/face-convert.js  Face pipeline and cover paint
 js/flowers.js       Flower drawing
 js/plates.js        Plate finder and sticker

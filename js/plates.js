@@ -12,6 +12,24 @@ function plateLabelRect(box, flowerScale) {
   };
 }
 
+function clampPlateBox(box, canvasWidth, canvasHeight, flowerScale) {
+  const rect = plateLabelRect(box, flowerScale);
+  let nextX = rect.x;
+  let nextY = rect.y;
+  if (rect.width <= canvasWidth) {
+    nextX = Math.max(0, Math.min(canvasWidth - rect.width, rect.x));
+  } else {
+    nextX = (canvasWidth - rect.width) / 2;
+  }
+  if (rect.height <= canvasHeight) {
+    nextY = Math.max(0, Math.min(canvasHeight - rect.height, rect.y));
+  } else {
+    nextY = (canvasHeight - rect.height) / 2;
+  }
+  box.x += nextX - rect.x;
+  box.y += nextY - rect.y;
+}
+
 function pointInPlateLabel(x, y, box, flowerScale) {
   const rect = plateLabelRect(box, flowerScale);
   const slop = Math.max(4, Math.min(rect.width, rect.height) * 0.08);

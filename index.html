@@ -55,7 +55,7 @@
             <canvas
               id="result-canvas"
               hidden
-              aria-label="Covered photo. Right-click a flower or a plate sticker to uncover it."
+              aria-label="Covered photo. Right-click a flower or a plate sticker to move or uncover it."
             ></canvas>
             <div id="result-placeholder" class="placeholder">
               <strong>Converted photo appears here</strong>
@@ -95,6 +95,9 @@
     <input id="file-input" type="file" accept="image/*" hidden />
 
     <div id="flower-menu" class="flower-menu" hidden role="menu">
+      <button type="button" id="move-cover-button" class="flower-menu-item flower-menu-item-move" role="menuitem" hidden>
+        Move plate
+      </button>
       <button type="button" id="remove-cover-button" class="flower-menu-item" role="menuitem">
         Remove cover
       </button>
