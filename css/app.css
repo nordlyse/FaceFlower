@@ -1,5 +1,5 @@
 :root {
-  --bg: #e4e8f0;
+  --bg: #2a303c;
   --ink: #1b2433;
   --muted: #5a6880;
   --line: rgba(27, 36, 51, 0.12);
@@ -25,7 +25,7 @@ body {
 body {
   font-family: ui-sans-serif, "Segoe UI", system-ui, sans-serif;
   color: var(--ink);
-  background: #e4e8f0;
+  background: #2a303c;
   overflow-x: hidden;
 }
 
@@ -179,8 +179,6 @@ p {
 }
 
 .brand-tag,
-footer p,
-.status,
 .placeholder span {
   color: var(--muted);
 }
@@ -193,6 +191,11 @@ footer p,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+footer p,
+.status {
+  color: rgba(232, 236, 244, 0.86);
 }
 
 .chip {

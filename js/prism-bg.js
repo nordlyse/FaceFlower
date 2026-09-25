@@ -40,11 +40,11 @@ function startPrismBackground(canvas) {
     "    vec3 pal=0.54+0.46*cos(6.28318*(vec3(0.0,0.33,0.67)+p.y*0.9+z*0.11+t*0.12));",
     "    acc+=pal/(11.0+d*95.0);",
     "  }",
-    "  acc*=1.7;",
+    "  acc*=1.25;",
     "  acc=acc/(1.0+acc);",
     "  float peak=max(acc.r,max(acc.g,acc.b));",
     "  vec3 chroma=acc/max(peak,0.001);",
-    "  acc=mix(vec3(0.90,0.905,0.93),chroma,clamp(peak*1.48,0.0,0.86));",
+    "  acc=mix(vec3(0.09,0.10,0.14),chroma,clamp(peak*0.98,0.0,0.36));",
     "  gl_FragColor=vec4(acc,1.0);",
     "}",
   ].join("\n");
