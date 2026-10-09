@@ -10,6 +10,7 @@
   --glass: rgba(255, 255, 255, 0.62);
   --shadow: 0 24px 50px rgba(27, 36, 51, 0.12);
   --radius: 28px;
+  --page-gutter: 7vw;
 }
 
 * {
@@ -56,7 +57,7 @@ footer {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  width: min(68rem, calc(100% - 2rem));
+  width: calc(100% - (2 * var(--page-gutter)));
   margin: 0.85rem auto 0;
   padding: 0.7rem 0.85rem 0.7rem 1.1rem;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -265,7 +266,7 @@ p {
 }
 
 main {
-  padding: 22px 7vw 40px;
+  padding: 22px var(--page-gutter) 40px;
 }
 
 .board {
@@ -532,16 +533,14 @@ canvas[hidden],
 }
 
 footer {
-  padding: 8px 7vw 32px;
+  padding: 8px var(--page-gutter) 32px;
   font-size: 0.88rem;
   text-align: center;
 }
 
 @media (max-width: 860px) {
-  main,
-  footer {
-    padding-left: 14px;
-    padding-right: 14px;
+  :root {
+    --page-gutter: 14px;
   }
 
   .board {
