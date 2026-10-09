@@ -8,7 +8,7 @@ Live source: [github.com/nordlyse/FaceFlower](https://github.com/nordlyse/FaceFl
 
 ## How to use
 
-1. Open the app in a browser (see [Run locally](#run-locally)).
+1. Open the app in a browser (see [Run locally](#run-locally)). The header jumps to **Home**, **About**, **Projects**, and **Help** on this page.
 2. Press **Upload** or drop a JPEG, PNG, or WebP photo onto the original pane.
 3. Press **Convert**. The app looks for faces and plates, then draws covers on a copy of the photo.
 4. Use **Cover size** − / + if the flowers or stickers should be smaller or larger.
@@ -50,7 +50,7 @@ There is no npm install, no CDN script, no cloud vision API, and no OpenCV / Med
 
 **Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (**MIT**). That package is **not** included; the shader in this repo is original FaceFlower code.
 
-**Header.** The floating glass bar is FaceFlower CSS. The look takes cues from React Bits [Card Nav](https://reactbits.dev/components/card-nav) and [Gradient Text](https://reactbits.dev/text-animations/gradient-text) (**MIT**). The footer line uses a [Shiny Text](https://reactbits.dev/text-animations/shiny-text) sweep. Those packages are **not** included.
+**Header.** The sticky pill bar is FaceFlower CSS. It matches the SpringRAG site header: Home, About, Projects, Help, plus GitHub, LinkedIn, and X buttons. The rainbow title sits in the home block. The footer line uses a [Shiny Text](https://reactbits.dev/text-animations/shiny-text) sweep. React Bits and SpringRAG packages are **not** included.
 
 Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pico.js is MIT. Nothing Apache-2.0 is bundled today.
 

@@ -441,6 +441,9 @@ function onResultClick(event) {
 }
 
 function bindSpotlight(card) {
+  if (!card) {
+    return;
+  }
   card.addEventListener("pointermove", (event) => {
     const rect = card.getBoundingClientRect();
     card.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
@@ -610,9 +613,7 @@ function bindDrop(frame) {
 }
 
 function startApp() {
-  bindSpotlight(document.getElementById("topbar-shell"));
-  bindSpotlight(document.getElementById("source-card"));
-  bindSpotlight(document.getElementById("result-card"));
+  document.querySelectorAll(".card").forEach(bindSpotlight);
   bindDrop(sourceFrame);
   uploadButton.addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", onFileChosen);

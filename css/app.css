@@ -42,81 +42,84 @@ body {
   pointer-events: none;
 }
 
-.topbar,
 main,
 footer {
   position: relative;
   z-index: 1;
 }
 
-.topbar {
-  z-index: 8;
+.site-header {
   position: sticky;
-  top: 12px;
-  display: flex;
-  justify-content: center;
-  padding: 12px 3.2vw 0;
-}
-
-.topbar-shell {
-  position: relative;
-  width: 100%;
+  top: 0.85rem;
+  z-index: 8;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 18px 108px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: linear-gradient(
-    180deg,
-    rgba(46, 52, 64, 0.72),
-    rgba(28, 33, 44, 0.78)
-  );
-  box-shadow:
-    0 22px 48px rgba(16, 20, 28, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(26px) saturate(1.28);
-  overflow: hidden;
-  --spot-x: 18%;
-  --spot-y: 40%;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(68rem, calc(100% - 2rem));
+  margin: 0.85rem auto 0;
+  padding: 0.7rem 0.85rem 0.7rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(12, 10, 22, 0.62);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
 }
 
-.topbar-shell::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    340px circle at var(--spot-x) var(--spot-y),
-    rgba(255, 224, 102, 0.16),
-    transparent 48%
-  );
-}
-
-.topbar-shell::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    105deg,
-    transparent 38%,
-    rgba(255, 255, 255, 0.14) 50%,
-    transparent 62%
-  );
-  background-size: 220% 100%;
-  animation: topbar-shine 7.5s ease-in-out infinite;
-}
-
-.brand {
-  position: relative;
-  z-index: 1;
+.site-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 0;
-  flex: 1 1 auto;
+  gap: 0.35rem;
+}
+
+.site-nav a {
+  color: #efeaf8;
+  text-decoration: none;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
+.site-nav a:hover,
+.social button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.site-nav a:focus-visible,
+.social button:focus-visible {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 2px;
+}
+
+.social {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.social button {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #efeaf8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.social svg {
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 h1,
@@ -125,9 +128,22 @@ p {
   margin: 0;
 }
 
+.hero,
+.page-section {
+  scroll-margin-top: 5.5rem;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+}
+
 .brand-copy {
   min-width: 0;
-  text-align: center;
+  text-align: left;
 }
 
 .brand-title {
@@ -188,10 +204,6 @@ p {
 }
 
 .chip {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  right: 16px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -206,7 +218,6 @@ p {
   font-weight: 650;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transform: translateY(-50%);
 }
 
 .chip::before {
@@ -230,15 +241,6 @@ p {
 .chip[data-state="error"]::before {
   animation: none;
   box-shadow: none;
-}
-
-@keyframes topbar-shine {
-  0% {
-    background-position: 120% 0;
-  }
-  100% {
-    background-position: -20% 0;
-  }
 }
 
 @keyframes chip-pulse {
@@ -270,6 +272,18 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 22px;
+}
+
+.page-section {
+  margin-top: 1rem;
+}
+
+.page-copy {
+  position: relative;
+  margin: 0;
+  padding: 0 18px 18px;
+  color: var(--ink);
+  line-height: 1.5;
 }
 
 .card {
@@ -524,7 +538,6 @@ footer {
 }
 
 @media (max-width: 860px) {
-  .topbar,
   main,
   footer {
     padding-left: 14px;
@@ -539,16 +552,6 @@ footer {
     min-height: 280px;
   }
 
-  .topbar {
-    top: 10px;
-  }
-
-  .topbar-shell {
-    border-radius: 16px;
-    padding: 14px 88px;
-    gap: 12px;
-  }
-
   .brand-tag {
     white-space: normal;
   }
@@ -556,14 +559,36 @@ footer {
   .brand-title {
     font-size: 2.15rem;
   }
+}
 
-  .chip {
-    right: 10px;
+@media (max-width: 760px) {
+  .site-header {
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    border-radius: 1.25rem;
+  }
+
+  .site-nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .site-nav a {
+    padding: 0.4rem 0.45rem;
+    font-size: 0.84rem;
+  }
+
+  .social {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .hero {
+    flex-wrap: wrap;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .topbar-shell::after,
   .chip::before,
   .shiny-text {
     animation: none;

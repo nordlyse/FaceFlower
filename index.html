@@ -8,25 +8,62 @@
       name="description"
       content="Detect faces and license plates in a photo and cover them for GDPR-friendly sharing."
     />
-    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/app.css?v=site-header" />
     <link rel="icon" href="data:," />
   </head>
   <body>
     <canvas id="prism-bg" class="prism-bg" aria-hidden="true"></canvas>
 
-    <header class="topbar">
-      <div class="topbar-shell" id="topbar-shell">
-        <div class="brand">
-          <div class="brand-copy">
-            <h1 class="brand-title">FaceFlower</h1>
-            <p class="brand-tag">Cover faces and plates before you share.</p>
-          </div>
-        </div>
-        <p id="engine-status" class="chip" data-state="ready">Ready</p>
-      </div>
+    <header class="site-header">
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#help">Help</a>
+      </nav>
+      <ul class="social">
+        <li>
+          <button type="button" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.55-1.14-4.55-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.32.1-2.75 0 0 .84-.27 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.32 2.75-1.05 2.75-1.05.55 1.43.2 2.49.1 2.75.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.81 0 .27.18.59.69.48A10.04 10.04 0 0 0 22 12.26C22 6.58 17.52 2 12 2Z"
+              />
+            </svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M6.5 9H3.7v11.2h2.8V9ZM5.1 3.8A1.7 1.7 0 1 0 5.1 7a1.7 1.7 0 0 0 0-3.2ZM20.3 20.2h-2.8v-5.8c0-1.6-.6-2.6-2-2.6-1 0-1.6.7-1.9 1.4-.1.2-.1.6-.1.9v6.1H10.7s.04-9.9 0-11.2h2.8v1.8c.4-.6 1.1-1.5 2.8-1.5 2 0 3.6 1.3 3.6 4.2v6.7Z"
+              />
+            </svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" aria-label="X">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M17.6 3H20.4L14.1 10.1 21.5 21h-5.5l-4.3-6.3L6.7 21H3.9l6.7-7.6L2.7 3h5.6l3.9 5.8L17.6 3Zm-1 16.2h1.5L7.5 4.7H5.9l10.7 14.5Z"
+              />
+            </svg>
+          </button>
+        </li>
+      </ul>
     </header>
 
     <main>
+      <section id="home" class="hero">
+        <div class="brand-copy">
+          <h1 class="brand-title">FaceFlower</h1>
+          <p class="brand-tag">Cover faces and plates before you share.</p>
+        </div>
+        <p id="engine-status" class="chip" data-state="ready">Ready</p>
+      </section>
+
       <section class="board">
         <article class="card" id="source-card">
           <div class="card-head">
@@ -81,6 +118,45 @@
         </div>
         <p id="convert-status" class="status" role="status"></p>
       </div>
+
+      <section id="about" class="page-section">
+        <article class="card" id="about-card">
+          <div class="card-head">
+            <h2>About</h2>
+          </div>
+          <p class="page-copy">
+            FaceFlower covers faces and license plates in a photo before you share it. Faces get flower icons.
+            Plates get a NO NUMBER sticker. Detection and drawing stay in the browser. Nothing is sent to a server.
+          </p>
+        </article>
+      </section>
+
+      <section id="projects" class="page-section">
+        <article class="card" id="projects-card">
+          <div class="card-head">
+            <h2>Projects</h2>
+          </div>
+          <p class="page-copy">
+            This page lets you add a photo, find faces and plates, paint covers on a copy, and download the result.
+            pico.js finds faces. FaceFlower code in this repository finds plates and draws the covers.
+          </p>
+        </article>
+      </section>
+
+      <section id="help" class="page-section">
+        <article class="card" id="help-card">
+          <div class="card-head">
+            <h2>Help</h2>
+          </div>
+          <p class="page-copy">
+            Press Upload or drop a JPEG, PNG, or WebP photo onto the original pane, then press Convert. Use Cover
+            size − / + if the flowers or stickers should be smaller or larger. Right-click (or click) a cover and
+            choose Remove flower or Remove plate if that person or plate should stay visible. For a plate sticker
+            that missed the number, choose Move plate (or drag the sticker) and drop it on the plate. Press
+            Download for a PNG named faceflower.png.
+          </p>
+        </article>
+      </section>
     </main>
 
     <footer>
