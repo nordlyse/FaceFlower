@@ -64,6 +64,7 @@ Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pic
 ## Layout
 
 ```
+LICENSE             MIT and hobby notice
 index.html          App shell
 css/app.css         Layout and theme
 js/app.js           Upload, convert, size, menu, move plate, download
@@ -77,9 +78,11 @@ models/facefinder   Face cascade
 
 ## Disclaimer
 
-Use of this app is at your own risk. No liability is accepted for any outcome that arises from using FaceFlower, including missed faces or plates, photos that still identify people or vehicles, or any other result of sharing the output. The software is provided as-is, without warranty of any kind.
+FaceFlower is a hobby project. Use of this app is at your own risk. No liability is accepted for errors, bugs, missed faces or plates, photos that still identify people or vehicles, or any other outcome of running the software or sharing the output. The software is provided as-is, without warranty of any kind. The same points are in `LICENSE`.
 
 ## Licence
+
+FaceFlower app files (HTML, CSS, and `js/` except `vendor/pico.js`) use MIT, same as pico.js. Full text, including the hobby notice: `LICENSE`.
 
 Third-party code that ships with the app:
 
@@ -90,5 +93,3 @@ Not bundled. Listed only because they are used to run the page locally or as a l
 
 - **python3 -m http.server** — local run only, optional host, [Python Software Foundation Licence](https://docs.python.org/3/license.html).
 - **React Bits** (Prism, Shiny Text) — MIT look reference only. FaceFlower does not include React Bits, GSAP, or OGL.
-
-FaceFlower app files (HTML, CSS, and `js/` except `vendor/pico.js`) use MIT, same as pico.js, unless a file says otherwise.
