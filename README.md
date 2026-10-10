@@ -40,7 +40,8 @@ The only third-party library shipped in this app is **pico.js** (MIT). Flowers, 
 | `js/plates.js` | Plate finder and NO NUMBER sticker | MIT (this repo) | yes |
 | `js/prism-bg.js` | Prism background (WebGL) | MIT (this repo) | yes |
 | Canvas 2D and WebGL | Drawing APIs in the browser | browser platform | no extra package |
-| `python3 -m http.server` | Optional local static host | [PSF Licence](https://docs.python.org/3/license.html) | not shipped |
+| `python3 -m http.server` | Local run only: optional static host | [PSF Licence](https://docs.python.org/3/license.html) | not shipped |
+| [React Bits](https://reactbits.dev/) (Prism, Shiny Text) | Look reference only | MIT | not shipped |
 
 There is no npm install, no CDN script, no cloud vision API, and no OpenCV / MediaPipe / TensorFlow build.
 
@@ -50,7 +51,7 @@ There is no npm install, no CDN script, no cloud vision API, and no OpenCV / Med
 
 **Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (**MIT**). That package is **not** included; the shader in this repo is original FaceFlower code.
 
-**Header and footer.** The sticky pill bar and the tall glass footer are FaceFlower CSS. They match the SpringRAG site bars: Home, About, Projects, Help, plus GitHub, LinkedIn, and X buttons. The rainbow title sits in the home block. The credit line uses a [Shiny Text](https://reactbits.dev/text-animations/shiny-text) sweep. React Bits and SpringRAG packages are **not** included.
+**Header and footer.** The sticky pill bar and the tall glass footer are FaceFlower CSS: Home, About, Projects, Help, plus GitHub, LinkedIn, and X buttons. The rainbow title sits in the home block. The credit line uses a [Shiny Text](https://reactbits.dev/text-animations/shiny-text) sweep. React Bits packages are **not** included.
 
 Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pico.js is MIT. Nothing Apache-2.0 is bundled today.
 
@@ -85,9 +86,9 @@ Third-party code that ships with the app:
 - **pico.js** — MIT, Nenad Markus / [picojs](https://github.com/nenadmarkus/picojs). Full text: `vendor/LICENSE-pico.txt`.
 - **models/facefinder** — face cascade from the same pico.js project, MIT under the same terms.
 
-Not bundled, listed only because they show up in docs or local run:
+Not bundled. Listed only because they are used to run the page locally or as a look reference:
 
-- **python3 -m http.server** — optional host, [Python Software Foundation Licence](https://docs.python.org/3/license.html).
-- **React Bits** (Prism, Card Nav, Gradient Text, Shiny Text) — MIT look reference only. FaceFlower does not include React Bits, GSAP, or OGL.
+- **python3 -m http.server** — local run only, optional host, [Python Software Foundation Licence](https://docs.python.org/3/license.html).
+- **React Bits** (Prism, Shiny Text) — MIT look reference only. FaceFlower does not include React Bits, GSAP, or OGL.
 
 FaceFlower app files (HTML, CSS, and `js/` except `vendor/pico.js`) use MIT, same as pico.js, unless a file says otherwise.
