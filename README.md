@@ -50,7 +50,7 @@ There is no npm install, no CDN script, no cloud vision API, and no OpenCV / Med
 
 **Background.** The prism layer is a small WebGL raymarch in `js/prism-bg.js`. The look is close to [React Bits Prism](https://reactbits.dev/backgrounds/prism) (**MIT**). That package is **not** included; the shader in this repo is original FaceFlower code.
 
-**Header.** The sticky pill bar is FaceFlower CSS. It matches the SpringRAG site header: Home, About, Projects, Help, plus GitHub, LinkedIn, and X buttons. The rainbow title sits in the home block. The footer line uses a [Shiny Text](https://reactbits.dev/text-animations/shiny-text) sweep. React Bits and SpringRAG packages are **not** included.
+**Header and footer.** The sticky pill bar and the tall glass footer are FaceFlower CSS. They match the SpringRAG site bars: Home, About, Projects, Help, plus GitHub, LinkedIn, and X buttons. The rainbow title sits in the home block. The credit line uses a [Shiny Text](https://reactbits.dev/text-animations/shiny-text) sweep. React Bits and SpringRAG packages are **not** included.
 
 Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pico.js is MIT. Nothing Apache-2.0 is bundled today.
 
