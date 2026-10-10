@@ -11,6 +11,9 @@ const sourcePlaceholder = document.getElementById("source-placeholder");
 const resultPlaceholder = document.getElementById("result-placeholder");
 const sourceFrame = document.getElementById("source-frame");
 const engineStatus = document.getElementById("engine-status");
+const themeLightButton = document.getElementById("theme-light-button");
+const themeDarkButton = document.getElementById("theme-dark-button");
+const THEME_KEY = "faceflower-theme";
 const convertStatus = document.getElementById("convert-status");
 
 let sourceReady = false;
@@ -612,7 +615,24 @@ function bindDrop(frame) {
   });
 }
 
+function applyTheme(theme) {
+  const next = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try {
+    localStorage.setItem(THEME_KEY, next);
+  } catch (error) {}
+  themeLightButton.setAttribute("aria-pressed", next === "light" ? "true" : "false");
+  themeDarkButton.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+  const prism = document.getElementById("prism-bg");
+  if (prism && typeof prism.setPrismLift === "function") {
+    prism.setPrismLift(next === "light" ? 1 : 0);
+  }
+}
+
 function startApp() {
+  applyTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
+  themeLightButton.addEventListener("click", () => applyTheme("light"));
+  themeDarkButton.addEventListener("click", () => applyTheme("dark"));
   document.querySelectorAll(".card").forEach(bindSpotlight);
   bindDrop(sourceFrame);
   uploadButton.addEventListener("click", () => fileInput.click());

@@ -8,7 +8,7 @@ Live source: [github.com/nordlyse/FaceFlower](https://github.com/nordlyse/FaceFl
 
 ## How to use
 
-1. Open the app in a browser (see [Run locally](#run-locally)). The header jumps to **Home**, **About**, **Projects**, and **Help** on this page.
+1. Open the app in a browser (see [Run locally](#run-locally)). The header jumps to **Home**, **About**, **Projects**, and **Help** on this page. **Light** and **Dark** next to Ready switch the page background. Dark is the default.
 2. Press **Upload** or drop a JPEG, PNG, or WebP photo onto the original pane.
 3. Press **Convert**. The app looks for faces and plates, then draws covers on a copy of the photo.
 4. Use **Cover size** − / + if the flowers or stickers should be smaller or larger.

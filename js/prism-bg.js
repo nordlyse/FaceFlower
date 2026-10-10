@@ -17,6 +17,7 @@ function startPrismBackground(canvas) {
     "precision highp float;",
     "uniform vec2 uRes;",
     "uniform float uTime;",
+    "uniform float uLift;",
     "float sdOcta(vec3 p,float s){p=abs(p);return (p.x+p.y+p.z-s)*0.57735027;}",
     "float sdCrystal(vec3 p){float body=sdOcta(p,1.05);float cut=-p.y-0.22;return max(body,cut);}",
     "void main(){",
@@ -44,7 +45,10 @@ function startPrismBackground(canvas) {
     "  acc=acc/(1.0+acc);",
     "  float peak=max(acc.r,max(acc.g,acc.b));",
     "  vec3 chroma=acc/max(peak,0.001);",
-    "  acc=mix(vec3(0.09,0.10,0.14),chroma,clamp(peak*0.98,0.0,0.36));",
+    "  vec3 night=vec3(0.09,0.10,0.14);",
+    "  vec3 day=vec3(0.86,0.88,0.94);",
+    "  vec3 base=mix(night,day,uLift);",
+    "  acc=mix(base,chroma,clamp(peak*mix(0.98,0.5,uLift),0.0,mix(0.36,0.2,uLift)));",
     "  gl_FragColor=vec4(acc,1.0);",
     "}",
   ].join("\n");
@@ -84,7 +88,13 @@ function startPrismBackground(canvas) {
 
   const uRes = gl.getUniformLocation(program, "uRes");
   const uTime = gl.getUniformLocation(program, "uTime");
+  const uLift = gl.getUniformLocation(program, "uLift");
   const startedAt = performance.now();
+  const initialLift = document.documentElement.dataset.theme === "light" ? 1 : 0;
+  gl.uniform1f(uLift, initialLift);
+  canvas.setPrismLift = function setPrismLift(value) {
+    gl.uniform1f(uLift, value);
+  };
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let frame = 0;
 
