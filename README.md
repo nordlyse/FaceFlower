@@ -37,6 +37,12 @@ Stored files live in `saved/`. Convert still runs in the browser. Download inser
 
 The name in the get path is the file name only. Names with `/`, `..`, or a suffix other than `.png`, `.jpg`, `.jpeg`, or `.webp` are rejected.
 
+Saved-photo endpoint tests use Python unittest (stdlib):
+
+```bash
+python3 -m unittest tests.test_saved_photos
+```
+
 ## Tools and libraries
 
 The only third-party library shipped in this app is **pico.js** (MIT). Flowers, plate stickers, the convert flow, and the prism background are FaceFlower code in this repository.
@@ -47,6 +53,7 @@ The only third-party library shipped in this app is **pico.js** (MIT). Flowers, 
 | `models/facefinder` | pico cascade used by the face finder | MIT (same pico.js project) | yes |
 | HTML, CSS, `js/app.js`, `js/face-convert.js` | UI, convert, download | MIT (this repo) | yes |
 | `serve.py` | Local host and saved-photo endpoints | MIT (this repo); uses Python stdlib | yes |
+| `tests/test_saved_photos.py` | Saved-photo endpoint tests | MIT (this repo); Python unittest | yes |
 | `js/flowers.js` | Flower covers (Canvas 2D) | MIT (this repo) | yes |
 | `js/plates.js` | Plate finder and NO NUMBER sticker | MIT (this repo) | yes |
 | `js/prism-bg.js` | Prism background (WebGL) | MIT (this repo) | yes |
@@ -77,6 +84,7 @@ Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pic
 ```
 LICENSE             MIT and hobby notice
 serve.py            Local host and saved-photo endpoints
+tests/              Saved-photo endpoint tests
 saved/              Stored PNGs (gitignored)
 index.html          App shell
 css/app.css         Layout and theme

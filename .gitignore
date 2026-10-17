@@ -1,3 +1,5 @@
 saved/*
 !saved/.gitkeep
 _verify_face.jpg
+__pycache__/
+*.pyc

@@ -26,6 +26,11 @@ PHOTO_TYPES = {
 }
 
 
+def set_saved_dir(path: Path) -> None:
+    global SAVED_DIR
+    SAVED_DIR = Path(path)
+
+
 def ensure_saved_dir() -> None:
     SAVED_DIR.mkdir(parents=True, exist_ok=True)
 
