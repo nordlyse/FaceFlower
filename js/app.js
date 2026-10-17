@@ -577,6 +577,23 @@ async function onConvertClick() {
   refreshButtons();
 }
 
+async function insertSavedPhoto(blob) {
+  try {
+    const response = await fetch("/saved-photos", {
+      method: "POST",
+      headers: { "Content-Type": "image/png" },
+      body: blob,
+    });
+    if (!response.ok) {
+      return "";
+    }
+    const payload = await response.json();
+    return typeof payload.name === "string" ? payload.name : "";
+  } catch (error) {
+    return "";
+  }
+}
+
 function onDownloadClick() {
   if (!resultReady) {
     return;
@@ -592,12 +609,17 @@ function onDownloadClick() {
       setConvertStatus("Download failed.");
       return;
     }
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "faceflower.png";
-    link.click();
-    URL.revokeObjectURL(url);
+    insertSavedPhoto(blob).then((savedName) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = savedName || "faceflower.png";
+      link.click();
+      URL.revokeObjectURL(url);
+      if (savedName) {
+        setConvertStatus(`Saved as ${savedName}.`);
+      }
+    });
   }, "image/png");
 }
 

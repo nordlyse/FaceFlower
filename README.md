@@ -13,19 +13,29 @@ Live source: [github.com/nordlyse/FaceFlower](https://github.com/nordlyse/FaceFl
 3. Press **Convert**. The app looks for faces and plates, then draws covers on a copy of the photo.
 4. Use **Cover size** − / + if the flowers or stickers should be smaller or larger.
 5. Right-click (or click) a cover and choose **Remove flower** or **Remove plate** if that person or plate should stay visible. For a plate sticker that missed the number, choose **Move plate** (or drag the sticker) and drop it on the plate.
-6. Press **Download** for a PNG named `faceflower.png`.
+6. Press **Download** for a PNG. With `python3 serve.py`, a copy is also stored under `saved/` and the file name is returned.
 
 Photos are scaled so the long edge stays at 960 px, which keeps Convert responsive. EXIF rotation is applied when the browser loads the file.
 
 ## Run locally
 
-The face model is loaded with `fetch`, so open the folder through HTTP rather than a `file://` URL.
+The face model is loaded with `fetch`, so open the folder through HTTP rather than a `file://` URL. For the saved-photo endpoints, run the FaceFlower host:
 
 ```bash
-python3 -m http.server 8080
+python3 serve.py
 ```
 
-Then open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). Any other static file server works the same way.
+Then open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). `python3 -m http.server 8080` still serves the page, but it does not offer `/saved-photos`.
+
+### Saved photos
+
+Stored files live in `saved/`. Convert still runs in the browser. Download inserts a PNG into that folder when `serve.py` is running.
+
+- `GET /saved-photos` — JSON list of stored names: `{ "names": ["faceflower-20261018T003512.png"] }`
+- `GET /saved-photos/{name}` — the photo bytes for that name only
+- `POST /saved-photos` — insert a PNG body; the reply is `{ "name": "..." }`
+
+The name in the get path is the file name only. Names with `/`, `..`, or a suffix other than `.png`, `.jpg`, `.jpeg`, or `.webp` are rejected.
 
 ## Tools and libraries
 
@@ -36,6 +46,7 @@ The only third-party library shipped in this app is **pico.js** (MIT). Flowers, 
 | [pico.js](https://github.com/nenadmarkus/picojs) (`vendor/pico.js`) | Local face finder | MIT | yes, vendored |
 | `models/facefinder` | pico cascade used by the face finder | MIT (same pico.js project) | yes |
 | HTML, CSS, `js/app.js`, `js/face-convert.js` | UI, convert, download | MIT (this repo) | yes |
+| `serve.py` | Local host and saved-photo endpoints | MIT (this repo); uses Python stdlib | yes |
 | `js/flowers.js` | Flower covers (Canvas 2D) | MIT (this repo) | yes |
 | `js/plates.js` | Plate finder and NO NUMBER sticker | MIT (this repo) | yes |
 | `js/prism-bg.js` | Prism background (WebGL) | MIT (this repo) | yes |
@@ -59,12 +70,14 @@ Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pic
 
 - Convert never uploads the photo.
 - Face and plate work stays on the device.
-- Download writes a PNG from the result canvas in the same tab.
+- Download writes a PNG from the result canvas in the same tab. With `serve.py`, that PNG is also inserted into `saved/` on the same host.
 
 ## Layout
 
 ```
 LICENSE             MIT and hobby notice
+serve.py            Local host and saved-photo endpoints
+saved/              Stored PNGs (gitignored)
 index.html          App shell
 css/app.css         Layout and theme
 js/app.js           Upload, convert, size, menu, move plate, download
