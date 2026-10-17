@@ -1,6 +1,8 @@
 # FaceFlower
 
-FaceFlower is a static HTML app that covers faces and license plates in a photo before you share it. Faces get flower icons. Plates get a **NO NUMBER** sticker. Detection and drawing run in the browser. Nothing is sent to a server.
+FaceFlower covers faces and license plates in a photo before you share it. Faces get flower icons. Plates get a **NO NUMBER** sticker. Detection and drawing run in the browser. Convert does not upload the photo.
+
+An optional local host (`serve.py`) serves the page and a small REST API for photos stored in `saved/`.
 
 The goal is GDPR-friendly sharing: people and children in the photo do not have to give consent if their faces are covered, and vehicle numbers stay hidden.
 
@@ -25,19 +27,34 @@ The face model is loaded with `fetch`, so open the folder through HTTP rather th
 python3 serve.py
 ```
 
-Then open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). `python3 -m http.server 8080` still serves the page, but it does not offer `/saved-photos`.
+Then open [http://127.0.0.1:8080/](http://127.0.0.1:8080/). If port 8080 is already in use:
 
-### Saved photos
+```bash
+FACEFLOWER_PORT=8765 python3 serve.py
+```
+
+`python3 -m http.server 8080` still serves the page, but it does not offer `/saved-photos`.
+
+### REST API
 
 Stored files live in `saved/`. Convert still runs in the browser. Download inserts a PNG into that folder when `serve.py` is running.
 
-- `GET /saved-photos` — JSON list of stored names: `{ "names": ["faceflower-20261018T003512.png"] }`
-- `GET /saved-photos/{name}` — the photo bytes for that name only
-- `POST /saved-photos` — insert a PNG body; the reply is `{ "name": "..." }`
+| Method | Path | Role |
+| --- | --- | --- |
+| `GET` | `/saved-photos` | JSON list of stored names: `{ "names": ["faceflower-20261018T003512.png"] }` |
+| `GET` | `/saved-photos/{name}` | Photo bytes for that file name only |
+| `POST` | `/saved-photos` | Insert a PNG body; the reply is `{ "name": "..." }` |
 
 The name in the get path is the file name only. Names with `/`, `..`, or a suffix other than `.png`, `.jpg`, `.jpeg`, or `.webp` are rejected.
 
-Saved-photo endpoint tests use Python unittest (stdlib):
+```bash
+curl -sS http://127.0.0.1:8080/saved-photos
+curl -sS -o out.png http://127.0.0.1:8080/saved-photos/faceflower-20261018T003512.png
+```
+
+### Tests
+
+REST API tests use Python unittest (stdlib). They start a short-lived host and write into a temp folder, not into `saved/`.
 
 ```bash
 python3 -m unittest tests.test_saved_photos
@@ -77,24 +94,24 @@ Third-party libraries bundled with the app are limited to MIT or Apache-2.0. pic
 
 - Convert never uploads the photo.
 - Face and plate work stays on the device.
-- Download writes a PNG from the result canvas in the same tab. With `serve.py`, that PNG is also inserted into `saved/` on the same host.
+- Download writes a PNG from the result canvas in the same tab. With `serve.py`, that PNG is also inserted into `saved/` on the same host. `saved/` is gitignored.
 
 ## Layout
 
 ```
-LICENSE             MIT and hobby notice
-serve.py            Local host and saved-photo endpoints
-tests/              Saved-photo endpoint tests
-saved/              Stored PNGs (gitignored)
-index.html          App shell
-css/app.css         Layout and theme
-js/app.js           Upload, convert, size, menu, move plate, download
-js/face-convert.js  Face pipeline and cover paint
-js/flowers.js       Flower drawing
-js/plates.js        Plate finder and sticker
-js/prism-bg.js      Prism background
-vendor/pico.js      Face library (MIT)
-models/facefinder   Face cascade
+LICENSE                       MIT and hobby notice
+serve.py                      Local host and REST API
+tests/test_saved_photos.py    REST API tests
+saved/                        Stored PNGs (gitignored)
+index.html                    App shell
+css/app.css                   Layout and theme
+js/app.js                     Upload, convert, size, menu, move plate, download
+js/face-convert.js            Face pipeline and cover paint
+js/flowers.js                 Flower drawing
+js/plates.js                  Plate finder and sticker
+js/prism-bg.js                Prism background
+vendor/pico.js                Face library (MIT)
+models/facefinder             Face cascade
 ```
 
 ## Disclaimer
@@ -103,7 +120,7 @@ FaceFlower is a hobby project. Use of this app is at your own risk. No liability
 
 ## Licence
 
-FaceFlower app files (HTML, CSS, and `js/` except `vendor/pico.js`) use MIT, same as pico.js. Full text, including the hobby notice: `LICENSE`.
+FaceFlower app files (HTML, CSS, `js/` except `vendor/pico.js`, `serve.py`, and `tests/`) use MIT, same as pico.js. Full text, including the hobby notice: `LICENSE`.
 
 Third-party code that ships with the app:
 
@@ -112,5 +129,5 @@ Third-party code that ships with the app:
 
 Not bundled. Listed only because they are used to run the page locally or as a look reference:
 
-- **python3 -m http.server** — local run only, optional host, [Python Software Foundation Licence](https://docs.python.org/3/license.html).
+- **python3 -m http.server** and **unittest** — local run and REST API tests, [Python Software Foundation Licence](https://docs.python.org/3/license.html).
 - **React Bits** (Prism, Shiny Text) — MIT look reference only. FaceFlower does not include React Bits, GSAP, or OGL.
