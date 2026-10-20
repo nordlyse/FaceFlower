@@ -44,12 +44,14 @@ Stored files live in `saved/`. Convert still runs in the browser. Download inser
 | `GET` | `/saved-photos` | JSON list of stored names: `{ "names": ["faceflower-20261018T003512.png"] }` |
 | `GET` | `/saved-photos/{name}` | Photo bytes for that file name only |
 | `POST` | `/saved-photos` | Insert a PNG body; the reply is `{ "name": "..." }` |
+| `DELETE` | `/saved-photos/{name}` | Remove that stored photo; the reply is `{ "name": "..." }` |
 
-The name in the get path is the file name only. Names with `/`, `..`, or a suffix other than `.png`, `.jpg`, `.jpeg`, or `.webp` are rejected.
+The name in the get and delete path is the file name only. Names with `/`, `..`, or a suffix other than `.png`, `.jpg`, `.jpeg`, or `.webp` are rejected.
 
 ```bash
 curl -sS http://127.0.0.1:8080/saved-photos
 curl -sS -o out.png http://127.0.0.1:8080/saved-photos/faceflower-20261018T003512.png
+curl -sS -X DELETE http://127.0.0.1:8080/saved-photos/faceflower-20261018T003512.png
 ```
 
 ### Tests

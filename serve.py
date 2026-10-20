@@ -100,6 +100,18 @@ class FaceFlowerHandler(SimpleHTTPRequestHandler):
             return
         self.send_error(404, "Not found")
 
+    def do_DELETE(self) -> None:
+        parsed = urlparse(self.path)
+        path = unquote(parsed.path)
+        if path in {"/saved-photos", "/saved-photos/"}:
+            self.send_error(400, "Photo name required")
+            return
+        if path.startswith("/saved-photos/"):
+            name = path[len("/saved-photos/") :]
+            self.remove_saved_photo(name)
+            return
+        self.send_error(404, "Not found")
+
     def send_saved_photo(self, name: str) -> None:
         path = saved_photo_path(name)
         if path is None:
@@ -145,6 +157,17 @@ class FaceFlowerHandler(SimpleHTTPRequestHandler):
             self.send_error(500, "Could not store photo")
             return
         path.write_bytes(body)
+        self.send_json(200, {"name": name})
+
+    def remove_saved_photo(self, name: str) -> None:
+        path = saved_photo_path(name)
+        if path is None:
+            self.send_error(400, "Bad photo name")
+            return
+        if not path.is_file():
+            self.send_error(404, "Photo not found")
+            return
+        path.unlink()
         self.send_json(200, {"name": name})
 
     def send_json(self, code: int, payload: dict) -> None:

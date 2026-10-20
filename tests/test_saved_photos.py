@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for GET/POST /saved-photos. MIT, this repo. Uses Python unittest."""
+"""Tests for GET/POST/DELETE /saved-photos. MIT, this repo. Uses Python unittest."""
 
 from __future__ import annotations
 
@@ -170,6 +170,46 @@ class SavedPhotoEndpointTests(unittest.TestCase):
             headers={"Content-Type": "image/png"},
         )
         self.assertEqual(status, 404)
+
+    def test_remove_by_name_then_list_is_empty(self) -> None:
+        post_status, _post_headers, post_body = self.request(
+            "POST",
+            "/saved-photos",
+            body=DOT_PNG,
+            headers={"Content-Type": "image/png"},
+        )
+        self.assertEqual(post_status, 200)
+        name = json.loads(post_body)["name"]
+
+        delete_status, _delete_headers, delete_body = self.request(
+            "DELETE", f"/saved-photos/{name}"
+        )
+        self.assertEqual(delete_status, 200)
+        self.assertEqual(json.loads(delete_body), {"name": name})
+        self.assertFalse((self.saved / name).exists())
+
+        list_status, _list_headers, list_body = self.request("GET", "/saved-photos")
+        self.assertEqual(list_status, 200)
+        self.assertEqual(json.loads(list_body), {"names": []})
+
+        get_status, _get_headers, _get_body = self.request("GET", f"/saved-photos/{name}")
+        self.assertEqual(get_status, 404)
+
+    def test_remove_missing_name_is_404(self) -> None:
+        status, _headers, _payload = self.request("DELETE", "/saved-photos/missing.png")
+        self.assertEqual(status, 404)
+
+    def test_remove_rejects_slash_in_name(self) -> None:
+        status, _headers, _payload = self.request("DELETE", "/saved-photos/foo%2Fbar.png")
+        self.assertEqual(status, 400)
+
+    def test_remove_rejects_dotdot_name(self) -> None:
+        status, _headers, _payload = self.request("DELETE", "/saved-photos/..%2FLICENSE")
+        self.assertEqual(status, 400)
+
+    def test_remove_collection_path_is_400(self) -> None:
+        status, _headers, _payload = self.request("DELETE", "/saved-photos")
+        self.assertEqual(status, 400)
 
 
 if __name__ == "__main__":
